@@ -7,6 +7,7 @@ import postRoutes from './routes/post.route.js';
 import commentRoutes from './routes/comment.route.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -17,6 +18,13 @@ mongoose.connect(process.env.MONGO).then(() => {
 })
 const __dirname = path.resolve();
 const app = express();
+
+
+// Configure CORS
+app.use(cors({
+  origin: 'https://mern-blog-by-ammar.netlify.app/', // Replace with your Netlify domain
+  credentials: true, // Enable sending cookies with CORS
+}));
 
 app.use(express.json());
 app.use(cookieParser());

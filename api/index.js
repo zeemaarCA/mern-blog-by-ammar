@@ -7,7 +7,6 @@ import postRoutes from './routes/post.route.js';
 import commentRoutes from './routes/comment.route.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
-import cors from 'cors';
 
 dotenv.config();
 
@@ -19,23 +18,10 @@ mongoose.connect(process.env.MONGO).then(() => {
 const __dirname = path.resolve();
 const app = express();
 
-
-// Configure CORS
-app.use(cors({
-  origin: 'https://mern-blog-by-ammar.netlify.app/', // Replace with your Netlify domain
-  credentials: true, // Enable sending cookies with CORS
-}));
-
 app.use(express.json());
 app.use(cookieParser());
 app.listen(3000, () => {
   console.log('Server is running on port 3000!');
-});
-
-app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-  next();
 });
 
 app.use('/api/user', userRoutes);

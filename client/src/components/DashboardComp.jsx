@@ -199,7 +199,9 @@ export default function DashboardComp() {
                         className='w-14 h-10 rounded-md bg-gray-500'
                       />
                     </Table.Cell>
-                    <Link to={`/post/${post.slug}`}><Table.Cell className='w-96'>{post.title}</Table.Cell></Link>
+
+                      <Table.Cell className='w-96'>  <Link to={`/post/${post.slug}`}>{post.title}</Link></Table.Cell>
+
                     <Table.Cell className='w-5'>{post.category}</Table.Cell>
                   </Table.Row>
                 </Table.Body>

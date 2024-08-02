@@ -1,20 +1,22 @@
 import Stripe from 'stripe';
-import { MongoClient } from 'mongodb';
-import Order from '../models/order.model.js'; // Import your Order model
-import Payment from '../models/payment.model.js'; // Import your Payment model
+import mongoose from 'mongoose';
+import Order from '../models/order.model.js';
+import Payment from '../models/payment.model.js';
 import dotenv from 'dotenv';
 
-const stripe = new Stripe('sk_test_N9GrXRSMB1nazlDElS0f6QLC'); // Replace with your Stripe secret key
-const endpointSecret = 'whsec_udCxeeAqzk1CVE71Q571qB6qNGRFRxLL';
+dotenv.config();
 
-// Connect to MongoDB
-async function connectToDatabase() {
-  const client = await MongoClient.connect('process.env.MONGO', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-  return client.db('mern-blog');
-}
+const stripe = new Stripe('sk_test_N9GrXRSMB1nazlDElS0f6QLC');
+const endpointSecret = 'whsec_e1kCDRL8xyrpFAEjF6Lc6V8gR2JgWktQ';
+
+mongoose.connect(process.env.MONGO, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('Connected to MongoDB');
+}).catch((err) => {
+  console.error('MongoDB connection error:', err);
+});
 
 export const createCheckoutSession = async (req, res) => {
   try {
@@ -26,7 +28,7 @@ export const createCheckoutSession = async (req, res) => {
         product_data: {
           name: product.title,
         },
-        unit_amount: product.price * 100, // amount in cents
+        unit_amount: product.price * 100,
       },
       quantity: product.quantity,
     }));
@@ -69,26 +71,25 @@ export const handleWebhook = async (req, res) => {
 };
 
 async function handleCheckoutSessionCompleted(session) {
-  const db = await connectToDatabase();
-  const paymentsCollection = db.collection('payments');
-  const ordersCollection = db.collection('orders');
-
-  await paymentsCollection.insertOne({
-    paymentId: session.payment_intent,
+  const payment = new Payment({
+    user: session.metadata.userId,
+    sessionId: session.id,
     amount: session.amount_total,
     currency: session.currency,
-    customer: session.customer,
-    payment_status: session.payment_status,
-    created: session.created,
+    status: session.payment_status,
+    createdAt: new Date(session.created * 1000),
   });
 
-  await ordersCollection.insertOne({
-    orderId: session.id,
-    paymentId: session.payment_intent,
-    customer: session.customer,
+  await payment.save();
+
+  const order = new Order({
+    user: session.metadata.userId,
+    products: session.display_items, // Adjust according to how you store products
     amount: session.amount_total,
     currency: session.currency,
-    items: session.display_items,
-    created: session.created,
+    paymentStatus: session.payment_status,
+    createdAt: new Date(session.created * 1000),
   });
+
+  await order.save();
 }

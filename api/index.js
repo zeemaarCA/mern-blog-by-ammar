@@ -10,12 +10,12 @@ import paymentRoutes from './routes/payment.route.js';
 import customerRoutes from './routes/customer.route.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import bodyParser from 'body-parser';
 
 
 dotenv.config();
 
 mongoose.connect(process.env.MONGO).then(() => {
-  console.log('connected to db');
 }).catch((err) => {
   console.log(err);
 })
@@ -27,9 +27,7 @@ app.use(cookieParser());
 
 app.use('/img', express.static(path.join(__dirname, 'src/assets/img')));
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000!');
-});
+
 
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
@@ -45,6 +43,7 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
 
+app.use(bodyParser.raw({ type: 'application/json' }));
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
@@ -55,3 +54,7 @@ app.use((err, req, res, next) => {
     message
   })
 })
+
+app.listen(3000, () => {
+  console.log('Server is running on port 3000!');
+});

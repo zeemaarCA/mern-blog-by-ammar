@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Order from '../models/order.model.js';
 import Payment from '../models/payment.model.js';
 import dotenv from 'dotenv';
+import logger from '../utils/logger.js';
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ mongoose.connect(process.env.MONGO, {
 }).then(() => {
   console.log('Connected to MongoDB');
 }).catch((err) => {
-  console.error('MongoDB connection error:', err);
+  logger.error('MongoDB connection error:', err);
 });
 
 export const createCheckoutSession = async (req, res) => {
@@ -43,6 +44,7 @@ export const createCheckoutSession = async (req, res) => {
 
     res.json({ id: session.id });
   } catch (error) {
+    logger.error('Error creating checkout session:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -54,42 +56,53 @@ export const handleWebhook = async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err) {
-    console.error('Webhook error:', err.message);
+    logger.error('Webhook error:', err.message);
     return res.status(400).send(`Webhook error: ${err.message}`);
   }
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const session = event.data.object;
+        await handleCheckoutSessionCompleted(session);
+        break;
+      default:
+        logger.warn(`Unhandled event type ${event.type}`);
+    }
 
-  switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      await handleCheckoutSessionCompleted(session);
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}`);
+    res.json({ received: true });
+  } catch (error) {
+    logger.error('Error handling webhook event:', error);
+    res.status(500).json({ error: error.message });
   }
-
-  res.json({ received: true });
 };
 
 async function handleCheckoutSessionCompleted(session) {
-  const payment = new Payment({
-    user: session.metadata.userId,
-    sessionId: session.id,
-    amount: session.amount_total,
-    currency: session.currency,
-    status: session.payment_status,
-    createdAt: new Date(session.created * 1000),
-  });
 
-  await payment.save();
+  try {
+    const payment = new Payment({
+      user: session.metadata.userId,
+      sessionId: session.id,
+      amount: session.amount_total,
+      currency: session.currency,
+      status: session.payment_status,
+      createdAt: new Date(session.created * 1000),
+    });
 
-  const order = new Order({
-    user: session.metadata.userId,
-    products: session.display_items, // Adjust according to how you store products
-    amount: session.amount_total,
-    currency: session.currency,
-    paymentStatus: session.payment_status,
-    createdAt: new Date(session.created * 1000),
-  });
+    await payment.save();
 
-  await order.save();
+    const order = new Order({
+      user: session.metadata.userId,
+      products: session.display_items, // Adjust according to how you store products
+      amount: session.amount_total,
+      currency: session.currency,
+      paymentStatus: session.payment_status,
+      createdAt: new Date(session.created * 1000),
+    });
+
+    await order.save();
+    logger.info('Payment and order saved successfully');
+  } catch (error) {
+    logger.error('Error saving payment or order:', error);
+    throw new Error(`Error saving payment or order: ${error.message}`);
+  }
 }

@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGO, {
 
 export const createCheckoutSession = async (req, res) => {
   try {
-    const { products } = req.body;
+    const { products, userId } = req.body;
 
     const lineItems = products.map(product => ({
       price_data: {
@@ -40,6 +40,10 @@ export const createCheckoutSession = async (req, res) => {
       mode: 'payment',
       success_url: 'https://mern-blog-erf7.onrender.com/payment-complete',
       cancel_url: 'https://mern-blog-erf7.onrender.com/payment-cancel',
+      metadata: {
+        userId,
+        products: JSON.stringify(products) // Ensure products are passed as a JSON string
+      },
     });
 
     res.json({ id: session.id });
@@ -62,9 +66,13 @@ export const handleWebhook = async (req, res) => {
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed':
-        const session = event.data.object;
-        await handleCheckoutSessionCompleted(session);
+      case 'charge.succeeded':
+        const chargeSucceeded = event.data.object;
+        await handleChargeSucceeded(chargeSucceeded);
+        break;
+      case 'charge.failed':
+        const chargeFailed = event.data.object;
+        await handleChargeFailed(chargeFailed);
         break;
       default:
         logger.warn(`Unhandled event type ${event.type}`);
@@ -77,26 +85,26 @@ export const handleWebhook = async (req, res) => {
   }
 };
 
-async function handleCheckoutSessionCompleted(session) {
+async function handleChargeSucceeded(charge) {
   try {
     const payment = new Payment({
-      user: session.metadata.userId,
-      sessionId: session.id,
-      amount: session.amount_total,
-      currency: session.currency,
-      status: session.payment_status,
-      createdAt: new Date(session.created * 1000),
+      user: charge.metadata.userId,
+      sessionId: charge.id,
+      amount: charge.amount,
+      currency: charge.currency,
+      status: charge.status,
+      createdAt: new Date(charge.created * 1000),
     });
 
     await payment.save();
 
     const order = new Order({
-      user: session.metadata.userId,
-      products: session.display_items, // Adjust according to how you store products
-      amount: session.amount_total,
-      currency: session.currency,
-      paymentStatus: session.payment_status,
-      createdAt: new Date(session.created * 1000),
+      user: charge.metadata.userId,
+      products: charge.metadata.products, // Ensure products are passed in metadata during session creation
+      amount: charge.amount,
+      currency: charge.currency,
+      paymentStatus: charge.status,
+      createdAt: new Date(charge.created * 1000),
     });
 
     await order.save();
@@ -104,5 +112,14 @@ async function handleCheckoutSessionCompleted(session) {
   } catch (error) {
     logger.error('Error saving payment or order:', error);
     throw new Error(`Error saving payment or order: ${error.message}`);
+  }
+}
+
+async function handleChargeFailed(charge) {
+  try {
+    logger.warn(`Charge failed for user ${charge.metadata.userId}`);
+  } catch (error) {
+    logger.error('Error handling charge failure:', error);
+    throw new Error(`Error handling charge failure: ${error.message}`);
   }
 }

@@ -9,19 +9,21 @@ import productRoutes from './routes/product.route.js';
 import paymentRoutes from './routes/payment.route.js';
 import customerRoutes from './routes/customer.route.js';
 import cookieParser from 'cookie-parser';
-import path from 'path';
 import bodyParser from 'body-parser';
-
+import path from 'path';
 
 dotenv.config();
 
 mongoose.connect(process.env.MONGO).then(() => {
+  console.log('connected to db');
 }).catch((err) => {
   console.log(err);
-})
+});
+
 const __dirname = path.resolve();
 const app = express();
 
+// Use body-parser middleware for raw body needed by Stripe
 app.use('/api/payment/webhook', bodyParser.raw({ type: 'application/json' }));
 
 app.use(express.json());
@@ -29,8 +31,9 @@ app.use(cookieParser());
 
 app.use('/img', express.static(path.join(__dirname, 'src/assets/img')));
 
-
-app.use(bodyParser.raw({ type: 'application/json' }));
+app.listen(3000, () => {
+  console.log('Server is running on port 3000!');
+});
 
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
@@ -46,7 +49,6 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
 
-
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal server error';
@@ -54,9 +56,5 @@ app.use((err, req, res, next) => {
     success: false,
     statusCode,
     message
-  })
-})
-
-app.listen(3000, () => {
-  console.log('Server is running on port 3000!');
+  });
 });

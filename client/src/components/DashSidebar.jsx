@@ -8,6 +8,7 @@ import {
 	HiAnnotation,
 	HiChartPie,
 } from "react-icons/hi";
+import { AiOutlineProduct } from "react-icons/ai";
 import { Link, useLocation } from "react-router-dom";
 import { signoutSuccess } from "../redux/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -46,7 +47,7 @@ export default function DashSidebar() {
 		<Sidebar className="w-full md:w-56">
 			<Sidebar.Items>
 				<Sidebar.ItemGroup className="flex flex-col gap-1">
-				{currentUser.isAdmin && (
+					{currentUser.isAdmin && (
 						<Link to="/dashboard?tab=dash">
 							<Sidebar.Item
 								active={tab === "dash" || !tab}
@@ -76,6 +77,16 @@ export default function DashSidebar() {
 								as="div"
 							>
 								Posts
+							</Sidebar.Item>
+						</Link>
+					)}
+					{currentUser.isAdmin && (
+						<Link to="/create-product">
+							<Sidebar.Item
+								icon={AiOutlineProduct}
+								as="div"
+							>
+								Add Product
 							</Sidebar.Item>
 						</Link>
 					)}

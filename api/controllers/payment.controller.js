@@ -5,7 +5,7 @@ import Payment from '../models/payment.model.js'; // Import your Payment model
 import dotenv from 'dotenv';
 
 const stripe = new Stripe('sk_test_N9GrXRSMB1nazlDElS0f6QLC'); // Replace with your Stripe secret key
-const endpointSecret = 'whsec_your_webhook_secret';
+const endpointSecret = 'whsec_udCxeeAqzk1CVE71Q571qB6qNGRFRxLL';
 
 // Connect to MongoDB
 async function connectToDatabase() {

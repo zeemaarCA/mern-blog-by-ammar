@@ -6,10 +6,8 @@ const orderSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
   currency: { type: String, required: true },
   paymentStatus: { type: String, required: true },
-},
-  {
-    timestamps: true
-  });
+  createdAt: { type: Date, default: Date.now },
+});
 
 const Order = mongoose.model('Order', orderSchema);
 export default Order;

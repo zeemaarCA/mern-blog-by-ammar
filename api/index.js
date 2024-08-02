@@ -22,8 +22,8 @@ mongoose.connect(process.env.MONGO).then(() => {
 const __dirname = path.resolve();
 const app = express();
 
-app.use('/api/payment/webhook', bodyParser.raw({ type: 'application/json' }));
 
+app.use(bodyParser.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -31,6 +31,7 @@ app.use('/img', express.static(path.join(__dirname, 'src/assets/img')));
 
 
 
+app.use('/api/payment/webhook', bodyParser.raw({ type: 'application/json' }));
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/post', postRoutes);
@@ -45,7 +46,6 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
 
-app.use(bodyParser.raw({ type: 'application/json' }));
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

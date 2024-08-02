@@ -22,6 +22,8 @@ mongoose.connect(process.env.MONGO).then(() => {
 const __dirname = path.resolve();
 const app = express();
 
+app.use('/api/payment/webhook', bodyParser.raw({ type: 'application/json' }));
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -34,7 +36,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/comment', commentRoutes);
 app.use('/api/product', productRoutes);
-app.use('/api/payment', bodyParser.raw({ type: 'application/json' }), paymentRoutes); // Handle raw body for Stripe webhooks
+app.use('/api/payment', paymentRoutes);
 app.use('/api/customer', customerRoutes);
 
 app.use(express.static(path.join(__dirname, '/client/dist')));

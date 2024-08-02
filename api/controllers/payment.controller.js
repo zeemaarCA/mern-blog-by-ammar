@@ -59,6 +59,7 @@ export const handleWebhook = async (req, res) => {
     logger.error('Webhook error:', err.message);
     return res.status(400).send(`Webhook error: ${err.message}`);
   }
+
   try {
     switch (event.type) {
       case 'checkout.session.completed':
@@ -77,7 +78,6 @@ export const handleWebhook = async (req, res) => {
 };
 
 async function handleCheckoutSessionCompleted(session) {
-
   try {
     const payment = new Payment({
       user: session.metadata.userId,

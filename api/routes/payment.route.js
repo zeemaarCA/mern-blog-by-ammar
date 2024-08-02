@@ -1,5 +1,5 @@
 import express from 'express'
-import { verifyToken } from '../utils/verifyUser.js';
+// import { verifyToken } from '../utils/verifyUser.js';
 import { createCheckoutSession, handleWebhook } from '../controllers/payment.controller.js';
 
 

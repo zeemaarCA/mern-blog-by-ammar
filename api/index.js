@@ -34,7 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/comment', commentRoutes);
 app.use('/api/product', productRoutes);
-app.use('/api/payment', paymentRoutes);
+app.use('/api/payment', bodyParser.raw({ type: 'application/json' }), paymentRoutes); // Handle raw body for Stripe webhooks
 app.use('/api/customer', customerRoutes);
 
 app.use(express.static(path.join(__dirname, '/client/dist')));

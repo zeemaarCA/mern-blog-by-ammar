@@ -88,7 +88,7 @@ export const handleWebhook = async (req, res) => {
 async function handleChargeSucceeded(charge) {
   try {
     const payment = new Payment({
-      user: charge.metadata.userId,
+      user: charge.email,
       sessionId: charge.id,
       amount: charge.amount,
       currency: charge.currency,
@@ -99,7 +99,7 @@ async function handleChargeSucceeded(charge) {
     await payment.save();
 
     const order = new Order({
-      user: charge.metadata.userId,
+      user: charge.email,
       products: charge.metadata.products, // Ensure products are passed in metadata during session creation
       amount: charge.amount,
       currency: charge.currency,

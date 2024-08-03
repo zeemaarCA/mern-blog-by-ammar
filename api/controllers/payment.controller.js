@@ -77,19 +77,19 @@ export const handleWebhook = async (req, res) => {
 };
 async function handleChargeSucceeded(charge) {
   try {
-    let products = [];
-    if (charge.metadata && charge.metadata.products) {
-      try {
-        products = JSON.parse(charge.metadata.products);
-      } catch (parseError) {
-        throw new Error(`Error parsing products from metadata:', ${parseError}`);
-        // Handle the parsing error appropriately (e.g., log, send an alert, etc.)
-        // Optionally, you might want to throw an error to stop processing the order
-      }
-    } else {
-      throw new Error('No products found in metadata');
-      // Decide how to handle the case where product data is missing
+    // 1. Extract Cookie Data:
+    // (You'll need a way to access the request object in this function; adjust this part based on your framework or setup)
+
+    // Assuming 'req' is available in this function's scope (if not, you'll need to pass it in)
+    const cartCookie = req.cookies.cart; // Replace 'cart' with your actual cookie name
+
+    if (!cartCookie) {
+      throw new Error('Cart information not found in cookies');
     }
+
+    const products = JSON.parse(cartCookie); // Parse the cookie string into an array of products
+
+    // 2. Create Payment and Order Records:
     const payment = new Payment({
       name: charge.billing_details.name,
       user: charge.billing_details.email,
@@ -108,7 +108,7 @@ async function handleChargeSucceeded(charge) {
       orderId: charge.id,
       name: charge.billing_details.name,
       user: charge.billing_details.email,
-      products,
+      products: products.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity })),
       amount: charge.amount,
       currency: charge.currency,
       paymentStatus: charge.status,
@@ -116,6 +116,11 @@ async function handleChargeSucceeded(charge) {
     });
     await order.save();
     logger.info('Payment and order saved successfully');
+
+    // 3. (Optional) Clear Cart Cookie:
+    // If you want to clear the cart after a successful purchase, you can do it here.
+    res.clearCookie('cart'); // Or however you clear cookies in your framework
+
   } catch (error) {
     logger.error('Error saving payment or order:', error);
     throw new Error(`Error saving payment or order: ${error.message}`);

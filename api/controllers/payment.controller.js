@@ -4,6 +4,7 @@ import Order from '../models/order.model.js';
 import Payment from '../models/payment.model.js';
 import dotenv from 'dotenv';
 import logger from '../utils/logger.js';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -68,7 +69,7 @@ export const handleWebhook = async (req, res) => {
     switch (event.type) {
       case 'charge.succeeded':
         const chargeSucceeded = event.data.object;
-        await handleChargeSucceeded(chargeSucceeded);
+        await handleChargeSucceeded(chargeSucceeded, req.cookies); // Pass cookies to the handler
         break;
       case 'charge.failed':
         const chargeFailed = event.data.object;
@@ -85,8 +86,9 @@ export const handleWebhook = async (req, res) => {
   }
 };
 
-async function handleChargeSucceeded(charge) {
+async function handleChargeSucceeded(charge, cookies) {
   try {
+    const cartProducts = JSON.parse(cookies.cart || '[]');
     const payment = new Payment({
       name: charge.billing_details.name,
       user: charge.billing_details.email,
@@ -105,7 +107,7 @@ async function handleChargeSucceeded(charge) {
       orderId: charge.id,
       name: charge.billing_details.name,
       user: charge.billing_details.email,
-      products: JSON.parse(charge.metadata.products || '[]'), // Ensure products are passed in metadata during session creation
+      products: cartProducts,
       amount: charge.amount,
       currency: charge.currency,
       paymentStatus: charge.status,

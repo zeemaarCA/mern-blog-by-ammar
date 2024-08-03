@@ -77,7 +77,19 @@ export const handleWebhook = async (req, res) => {
 };
 async function handleChargeSucceeded(charge) {
   try {
-    const products = JSON.parse(charge.metadata.products); // Parse the JSON string back to an array of objects.
+    let products = [];
+    if (charge.metadata && charge.metadata.products) {
+      try {
+        products = JSON.parse(charge.metadata.products);
+      } catch (parseError) {
+        logger.error('Error parsing products from metadata:', parseError);
+        // Handle the parsing error appropriately (e.g., log, send an alert, etc.)
+        // Optionally, you might want to throw an error to stop processing the order
+      }
+    } else {
+      logger.warn('No products found in metadata');
+      // Decide how to handle the case where product data is missing
+    }
     const payment = new Payment({
       name: charge.billing_details.name,
       user: charge.billing_details.email,

@@ -4,6 +4,7 @@ import Order from '../models/order.model.js';
 import Payment from '../models/payment.model.js';
 import dotenv from 'dotenv';
 import logger from '../utils/logger.js';
+import cookieParser from 'cookie-parser';
 dotenv.config();
 const stripe = new Stripe('sk_test_N9GrXRSMB1nazlDElS0f6QLC');
 const endpointSecret = 'whsec_e1kCDRL8xyrpFAEjF6Lc6V8gR2JgWktQ';
@@ -60,7 +61,7 @@ export const handleWebhook = async (req, res) => {
     switch (event.type) {
       case 'charge.succeeded':
         const chargeSucceeded = event.data.object;
-        await handleChargeSucceeded(chargeSucceeded);
+        await handleChargeSucceeded(chargeSucceeded, req, res);
         break;
       case 'charge.failed':
         const chargeFailed = event.data.object;
@@ -75,7 +76,7 @@ export const handleWebhook = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-async function handleChargeSucceeded(charge) {
+async function handleChargeSucceeded(charge, req, res) {
   try {
     // 1. Extract Cookie Data:
     // (You'll need a way to access the request object in this function; adjust this part based on your framework or setup)

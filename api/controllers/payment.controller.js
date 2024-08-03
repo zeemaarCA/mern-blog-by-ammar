@@ -43,7 +43,8 @@ export const createCheckoutSession = async (req, res) => {
       cancel_url: 'https://mern-blog-erf7.onrender.com/payment-cancel',
       metadata: {
         userId,
-        products: JSON.stringify(products) // Ensure products are passed as a JSON string
+        products: JSON.stringify(products), // Ensure products are passed as a JSON string
+        checkoutSessionId: session.id // Store the session ID in the metadata
       },
     });
 
@@ -53,6 +54,7 @@ export const createCheckoutSession = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 export const handleWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -88,13 +90,12 @@ export const handleWebhook = async (req, res) => {
 
 async function handleChargeSucceeded(charge) {
   try {
+    // Retrieve the session details from Stripe using the checkout session ID
+    const session = await stripe.checkout.sessions.retrieve(charge.metadata.checkoutSessionId);
 
-    const session = await stripe.checkout.sessions.retrieve(charge.id);
-    logger.info('Metadata:', charge.metadata);
-    const products = JSON.parse(charge.metadata.products || '[]');
+    logger.info('Metadata:', session.metadata);
 
-
-
+    const products = JSON.parse(session.metadata.products || '[]');
 
     if (products.length === 0) {
       throw new Error('No products found in metadata');

@@ -18,6 +18,7 @@ mongoose.connect(process.env.MONGO, {
 export const createCheckoutSession = async (req, res) => {
   try {
     const { products, userId } = req.body;
+    // return;
     const lineItems = products.map(product => ({
       price_data: {
         currency: 'usd',

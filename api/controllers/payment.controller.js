@@ -82,12 +82,12 @@ async function handleChargeSucceeded(charge) {
       try {
         products = JSON.parse(charge.metadata.products);
       } catch (parseError) {
-        logger.error('Error parsing products from metadata:', parseError);
+        throw new Error(`Error parsing products from metadata:', ${parseError}`);
         // Handle the parsing error appropriately (e.g., log, send an alert, etc.)
         // Optionally, you might want to throw an error to stop processing the order
       }
     } else {
-      logger.warn('No products found in metadata');
+      throw new Error('No products found in metadata');
       // Decide how to handle the case where product data is missing
     }
     const payment = new Payment({

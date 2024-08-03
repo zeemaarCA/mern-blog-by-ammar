@@ -94,7 +94,7 @@ async function handleChargeSucceeded(charge) {
       orderId: charge.id,
       name: charge.billing_details.name,
       user: charge.billing_details.email,
-      products: JSON.parse(charge.metadata.products || '[]'), // Ensure products are passed in metadata during session creation
+      products: products.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity })),
       amount: charge.amount,
       currency: charge.currency,
       paymentStatus: charge.status,

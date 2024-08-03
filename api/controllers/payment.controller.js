@@ -37,10 +37,11 @@ export const createCheckoutSession = async (req, res) => {
       cancel_url: 'https://mern-blog-erf7.onrender.com/payment-cancel',
       metadata: {
         userId,
-        products: products.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity }))
+        products: JSON.stringify(products.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity })))
       },
     });
     res.json({ id: session.id });
+    return
   } catch (error) {
     logger.error('Error creating checkout session:', error);
     res.status(500).json({ error: error.message });
@@ -76,7 +77,7 @@ export const handleWebhook = async (req, res) => {
 };
 async function handleChargeSucceeded(charge) {
   try {
-    const products = charge.metadata.products;
+    const products = JSON.parse(charge.metadata.products); // Parse the JSON string back to an array of objects.
     const payment = new Payment({
       name: charge.billing_details.name,
       user: charge.billing_details.email,

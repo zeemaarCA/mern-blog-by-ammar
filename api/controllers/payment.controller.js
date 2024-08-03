@@ -88,7 +88,13 @@ export const handleWebhook = async (req, res) => {
 
 async function handleChargeSucceeded(charge) {
   try {
+
+    const session = await stripe.checkout.sessions.retrieve(charge.id);
+    logger.info('Metadata:', charge.metadata);
     const products = JSON.parse(charge.metadata.products || '[]');
+
+
+
 
     if (products.length === 0) {
       throw new Error('No products found in metadata');

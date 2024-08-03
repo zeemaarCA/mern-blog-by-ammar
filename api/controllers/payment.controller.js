@@ -86,9 +86,13 @@ export const handleWebhook = async (req, res) => {
   }
 };
 
-async function handleChargeSucceeded(charge, cookies) {
+async function handleChargeSucceeded(charge) {
   try {
-    const cartProducts = JSON.parse(cookies.cart || '[]');
+    const products = JSON.parse(charge.metadata.products || '[]');
+
+    if (products.length === 0) {
+      throw new Error('No products found in metadata');
+    }
     const payment = new Payment({
       name: charge.billing_details.name,
       user: charge.billing_details.email,
@@ -107,7 +111,7 @@ async function handleChargeSucceeded(charge, cookies) {
       orderId: charge.id,
       name: charge.billing_details.name,
       user: charge.billing_details.email,
-      products: cartProducts,
+      products,
       amount: charge.amount,
       currency: charge.currency,
       paymentStatus: charge.status,

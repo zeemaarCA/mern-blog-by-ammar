@@ -7,11 +7,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { toggleTheme } from "../redux/theme/themeSlice";
 import { signoutSuccess } from "../redux/user/userSlice";
 import { useEffect, useState } from "react";
-import { useContext } from 'react';
-import { CartContext } from '../context/CartContext';
+import { selectTotalQuantity } from "../redux/cart/cartSlice";
 
 export default function Header() {
-	const { cartCount } = useContext(CartContext);
+	const totalQuantity = useSelector(selectTotalQuantity);
+	// const { cartCount } = useContext(CartContext);
 	const path = useLocation().pathname;
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -19,6 +19,8 @@ export default function Header() {
 	const { theme } = useSelector((state) => state.theme);
 	const dispatch = useDispatch();
 	const [searchTerm, setSearchTerm] = useState("");
+
+
 
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search);
@@ -51,6 +53,10 @@ export default function Header() {
 		const searchQuery = urlParams.toString();
 		navigate(`/search?${searchQuery}`);
 	};
+
+
+
+
 	return (
 		<Navbar className="border-b-2">
 			<Link
@@ -78,7 +84,7 @@ export default function Header() {
 			<div className="flex gap-3 items-center md:order-2">
 				<Link to="/cart" className="relative">
 					<LuShoppingCart className="w-[30px] h-[30px]" />
-					<span className="absolute top-[-5px] right-[-5px] inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">{cartCount}</span>
+					<span className="absolute top-[-5px] right-[-5px] inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">{totalQuantity}</span>
 				</Link>
 				<Button
 					className="w-12 h-10 hidden sm:inline"

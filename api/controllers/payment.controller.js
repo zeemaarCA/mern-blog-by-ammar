@@ -1,10 +1,10 @@
 import Stripe from 'stripe';
 import mongoose from 'mongoose';
 import Order from '../models/order.model.js';
+import User from '../models/user.model.js';
 import Payment from '../models/payment.model.js';
 import dotenv from 'dotenv';
 import logger from '../utils/logger.js';
-import cookieParser from 'cookie-parser';
 dotenv.config();
 const stripe = new Stripe('sk_test_N9GrXRSMB1nazlDElS0f6QLC');
 const endpointSecret = 'whsec_e1kCDRL8xyrpFAEjF6Lc6V8gR2JgWktQ';
@@ -38,7 +38,6 @@ export const createCheckoutSession = async (req, res) => {
       cancel_url: 'https://mern-blog-erf7.onrender.com/payment-cancel',
       metadata: {
         userId,
-        products: JSON.stringify(products.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity })))
       },
     });
     res.json({ id: session.id });
@@ -78,17 +77,13 @@ export const handleWebhook = async (req, res) => {
 };
 async function handleChargeSucceeded(charge, req, res) {
   try {
-    // 1. Extract Cookie Data:
-    // (You'll need a way to access the request object in this function; adjust this part based on your framework or setup)
-
-    // Assuming 'req' is available in this function's scope (if not, you'll need to pass it in)
-    const cartCookie = req.cookies.cart; // Replace 'cart' with your actual cookie name
-
-    if (!cartCookie) {
-      throw new Error('Cart information not found in cookies');
+    const userId = charge.metadata.userId;
+    const user = await User.findById(userId).populate('cart.product');
+    if (!user || !user.cart || user.cart.length === 0) {
+      throw new Error('User or cart information not found');
     }
 
-    const products = JSON.parse(cartCookie); // Parse the cookie string into an array of products
+    const products = user.cart;
 
     // 2. Create Payment and Order Records:
     const payment = new Payment({

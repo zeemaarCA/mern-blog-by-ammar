@@ -1,14 +1,14 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-hot-toast";
-import { CartContext } from "../context/CartContext";
 import OAuth from "../components/OAuth";
 import { Button } from "flowbite-react";
 import { setCheckoutFormFilled } from "../redux/checkout/checkoutSlice";
+import { selectCartItems } from "../redux/cart/cartSlice"
 
 const Checkout = () => {
-	const { cartItems } = useContext(CartContext);
+	const cartItems = useSelector(selectCartItems); 
 	const { currentUser } = useSelector((state) => state.user);
 	const dispatch = useDispatch();
 

@@ -1,17 +1,12 @@
-/* eslint-disable react/no-unescaped-entities */
 import { Alert, Button, Spinner } from "flowbite-react";
 import { useEffect, useState } from "react";
-// eslint-disable-next-line no-unused-vars
-import { Link, useParams } from "react-router-dom";
-// import CallToAction from "../components/CallToAction";
+import { useParams } from "react-router-dom";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { CiHeart } from "react-icons/ci";
 import ProductCard from "../components/ProductCard";
-import Cookies from "js-cookie";
-import { useSelector } from "react-redux";
+import { addItem } from "../redux/cart/cartSlice";
+import { useSelector, useDispatch  } from "react-redux";
 import toast from "react-hot-toast";
-import { useContext } from "react";
-import { CartContext } from "../context/CartContext";
 
 export default function ProductPage() {
 	const { productSlug } = useParams();
@@ -19,11 +14,10 @@ export default function ProductPage() {
 	const [error, setError] = useState(false);
 	const [isAddedToCart, setIsAddedToCart] = useState(false);
 	const [recentProducts, setRecentProducts] = useState(null);
-	const { updateCart } = useContext(CartContext);
 	const [loading, setLoading] = useState(false);
 
 	const currentUser = useSelector((state) => state.user.currentUser);
-
+	const dispatch = useDispatch();
 	useEffect(() => {
 		const fetchProduct = async () => {
 			try {
@@ -35,11 +29,9 @@ export default function ProductPage() {
 					setLoading(false);
 					return;
 				}
-				if (res.ok) {
-					setProduct(data.products[0]);
-					setLoading(false);
-					setError(false);
-				}
+				setProduct(data.products[0]);
+				setLoading(false);
+				setError(false);
 			} catch (error) {
 				setError("An unexpected error occurred. Please try again later.");
 				setLoading(false);
@@ -63,54 +55,52 @@ export default function ProductPage() {
 		}
 	}, []);
 
-	const handleAddToCart = () => {
-		// Retrieve existing cart items from cookies
-		const existingCart = Cookies.get("cart");
-		const cart = existingCart ? JSON.parse(existingCart) : [];
+	const handleAddToCart = async () => {
+		if (!currentUser) {
+			toast.error("Please log in to add items to the cart.");
+			return;
+		}
 
-		// Add the new product to the cart
 		const newProduct = {
-			userId: currentUser._id || "",
+			userId: currentUser._id,
 			id: product._id,
 			title: product.title,
 			price: product.price,
 			image: product.image,
 			slug: product.slug,
-			category: product.category
+			category: product.category,
+			quantity: 1,
 		};
 
-		// Check if the product is already in the cart
-		const productIndex = cart.findIndex((item) => item.id === newProduct.id);
-		if (productIndex > -1) {
-			// Update quantity if needed
-			// cart[productIndex].quantity = (cart[productIndex].quantity || 0) + 1;
-			setIsAddedToCart(true);
-			toast.success(`${product.title} already added to cart!`);
-		} else {
-			// Add new product
-			newProduct.quantity = 1;
-			cart.push(newProduct);
-			toast.success(`${product.title} added to cart!`);
-			setIsAddedToCart(true);
+		try {
+			const res = await fetch("/api/cart/addcart", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(newProduct),
+			});
+
+			if (res.ok) {
+				dispatch(addItem(newProduct));
+				toast.success(`${product.title} added to cart!`);
+				setIsAddedToCart(true);
+			} else {
+				const data = await res.json();
+				toast.error(data.message || "Failed to add item to cart.");
+			}
+		} catch (error) {
+			toast.error("An unexpected error occurred. Please try again later.");
 		}
-
-		// Update cart context
-		updateCart(cart);
-		// Save updated cart back to cookies
-		Cookies.set("cart", JSON.stringify(cart), { expires: 7 }); // Cart will expire in 7 days
-
-		// Optionally, you can show a confirmation message or redirect the user
 	};
 
 	return (
 		<div>
-			{/* product detail page */}
 			{loading ? (
 				<div className="flex justify-center items-center min-h-screen">
 					<Spinner size="xl" />
 				</div>
-			) : false}
-			{error ? (
+			) : error ? (
 				<Alert color="failure" className="mt-5">
 					{error}
 				</Alert>
@@ -155,14 +145,14 @@ export default function ProductPage() {
 										</Button>
 									</div>
 									<hr className="my-6 md:my-8 border-gray-200 dark:border-gray-800" />
-									<p className="mb-6 text-gray-500 dark:text-gray-400">
+									<div className="mb-6 text-gray-500 dark:text-gray-400">
 										<div
 											className="mx-auto w-full mb-7 post-content prose dark:prose-invert"
 											dangerouslySetInnerHTML={{
 												__html: product && product.description,
 											}}
 										></div>
-									</p>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -170,7 +160,6 @@ export default function ProductPage() {
 				</>
 			)}
 
-			{/* product detail page */}
 			<div className="flex flex-col justify-center items-center mb-5">
 				<h1 className="text-xl mt-5">Recent Products</h1>
 				<div className="flex flex-wrap gap-5 mt-5 justify-center">

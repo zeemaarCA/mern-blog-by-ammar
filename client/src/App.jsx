@@ -1,5 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
+import {store, persistor} from "./redux/store";
+import { Provider } from "react-redux";
+import { PersistGate } from 'redux-persist/integration/react';
 const Home = lazy(() => import("./pages/Home"));
 const Projects = lazy(() => import("./pages/Projects"));
 const About = lazy(() => import("./pages/About"));
@@ -23,14 +26,14 @@ import Header from "./components/Header";
 import FooterCom from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
 import Loader from "./components/Loader";
-import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast";
 import PaymentComplete from "./pages/PaymentComplete";
 function App() {
 	return (
 		<>
-			<BrowserRouter>
-				<CartProvider>
+			<Provider store={store}>
+			<PersistGate loading={null} persistor={persistor}>
+				<BrowserRouter>
 					<ScrollToTop />
 					<Header />
 					<Suspense fallback={<Loader />}>
@@ -92,8 +95,9 @@ function App() {
 						}}
 					/>
 					<FooterCom />
-				</CartProvider>
-			</BrowserRouter>
+					</BrowserRouter>
+					</PersistGate>
+			</Provider>
 		</>
 	);
 }

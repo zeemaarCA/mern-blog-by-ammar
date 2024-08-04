@@ -19,7 +19,7 @@ mongoose.connect(process.env.MONGO, {
 });
 export const createCheckoutSession = async (req, res) => {
   try {
-    const { products, userId } = req.body;
+    const { userId } = req.body;
 
     const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
 
@@ -65,9 +65,9 @@ export const handleWebhook = async (req, res) => {
   }
   try {
     switch (event.type) {
-      case 'charge.succeeded':
-        const chargeSucceeded = event.data.object;
-        await handleChargeSucceeded(chargeSucceeded, req, res);
+      case 'checkout.session.completed':
+        const session = event.data.object;
+        await handleCheckoutSessionCompleted(session);
         break;
       case 'charge.failed':
         const chargeFailed = event.data.object;
@@ -82,52 +82,54 @@ export const handleWebhook = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-async function handleChargeSucceeded(charge, req, res) {
+async function handleCheckoutSessionCompleted(session) {
   try {
-    const userId = charge.metadata.userId;
+    const userId = session.metadata.userId;
     const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
+
     if (!cart || !cart.items || cart.items.length === 0) {
       throw new Error('User or cart information not found');
     }
 
-
-    // 2. Create Payment and Order Records:
+    // Create Payment Record
     const payment = new Payment({
-      name: charge.billing_details.name,
-      user: charge.billing_details.email,
-      sessionId: charge.id,
-      amount: charge.amount,
-      currency: charge.currency,
-      paymentMethod: charge.payment_method_details.type,
-      receipt_url: charge.receipt_url,
-      status: charge.status,
-      createdAt: new Date(charge.created * 1000),
+      name: session.customer_details.name,
+      user: session.customer_details.email,
+      sessionId: session.id,
+      amount: session.amount_total,
+      currency: session.currency,
+      paymentMethod: session.payment_method_types[0], // Simplified assumption
+      receipt_url: session.receipt_url || '',
+      status: session.payment_status,
+      createdAt: new Date(session.created * 1000),
     });
 
     await payment.save();
 
+    // Create Order Record
     const order = new Order({
-      orderId: charge.id,
-      name: charge.billing_details.name,
-      user: charge.billing_details.email,
+      orderId: session.id,
+      name: session.customer_details.name,
+      user: session.customer_details.email,
       products: cart.items.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity })),
-      amount: charge.amount,
-      currency: charge.currency,
-      paymentStatus: charge.status,
-      createdAt: new Date(charge.created * 1000),
+      amount: session.amount_total,
+      currency: session.currency,
+      paymentStatus: session.payment_status,
+      createdAt: new Date(session.created * 1000),
     });
+
     await order.save();
     logger.info('Payment and order saved successfully');
 
-    // 3. (Optional) Clear Cart Cookie:
-    // If you want to clear the cart after a successful purchase, you can do it here.
-    res.clearCookie('cart'); // Or however you clear cookies in your framework
+    // Clear Cart after successful payment
+    await Cart.deleteOne({ userId: new mongoose.Types.ObjectId(userId) });
 
   } catch (error) {
     logger.error('Error saving payment or order:', error);
     throw new Error(`Error saving payment or order: ${error.message}`);
   }
 }
+
 async function handleChargeFailed(charge) {
   try {
     logger.warn(`Charge failed for user ${charge.metadata.userId}`);

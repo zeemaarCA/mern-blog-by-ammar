@@ -19,7 +19,7 @@ mongoose.connect(process.env.MONGO, {
 });
 export const createCheckoutSession = async (req, res) => {
   try {
-    const { userId , cartProducts} = req.body;
+    const { userId } = req.body;
 
     const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
 
@@ -45,7 +45,6 @@ export const createCheckoutSession = async (req, res) => {
       cancel_url: 'https://mern-blog-erf7.onrender.com/payment-cancel',
       metadata: {
         userId,
-        cartProducts,
       },
     });
     res.json({ id: session.id });

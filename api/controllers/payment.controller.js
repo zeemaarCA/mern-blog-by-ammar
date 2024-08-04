@@ -5,6 +5,7 @@ import User from '../models/user.model.js';
 import Payment from '../models/payment.model.js';
 import dotenv from 'dotenv';
 import logger from '../utils/logger.js';
+import Cart from '../models/cart.model.js';
 dotenv.config();
 const stripe = new Stripe('sk_test_N9GrXRSMB1nazlDElS0f6QLC');
 const endpointSecret = 'whsec_e1kCDRL8xyrpFAEjF6Lc6V8gR2JgWktQ';
@@ -78,12 +79,11 @@ export const handleWebhook = async (req, res) => {
 async function handleChargeSucceeded(charge, req, res) {
   try {
     const userId = charge.metadata.userId;
-    const user = await User.findById(userId).populate('cart.product');
-    if (!user || !user.cart || user.cart.length === 0) {
+    const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
+    if (!cart || !cart.items || cart.items.length === 0) {
       throw new Error('User or cart information not found');
     }
 
-    const products = user.cart;
 
     // 2. Create Payment and Order Records:
     const payment = new Payment({
@@ -104,7 +104,7 @@ async function handleChargeSucceeded(charge, req, res) {
       orderId: charge.id,
       name: charge.billing_details.name,
       user: charge.billing_details.email,
-      products: products.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity })),
+      products: cart.items.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity })),
       amount: charge.amount,
       currency: charge.currency,
       paymentStatus: charge.status,

@@ -90,18 +90,20 @@ async function handleCheckoutSessionCompleted(session) {
     if (!cart || !cart.items || cart.items.length === 0) {
       throw new Error('User or cart information not found');
     }
+    // Fetch Payment Intent details for receipt url
+    const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
 
     // Create Payment Record
     const payment = new Payment({
       name: session.customer_details.name,
       user: session.customer_details.email,
       sessionId: session.id,
-      amount: session.amount_total,
-      currency: session.currency,
-      paymentMethod: session.payment_method_types[0], // Simplified assumption
-      // receipt_url: session.receipt_url || '',
-      status: session.payment_status,
-      createdAt: new Date(session.created * 1000),
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+      paymentMethod: paymentIntent.payment_method_types[0], // Simplified assumption
+      receipt_url: paymentIntent.charges.data[0].receipt_url || '',
+      status: paymentIntent.status,
+      createdAt: new Date(paymentIntent.created * 1000),
     });
 
     await payment.save();
@@ -112,10 +114,10 @@ async function handleCheckoutSessionCompleted(session) {
       name: session.customer_details.name,
       user: session.customer_details.email,
       products: cart.items.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity })),
-      amount: session.amount_total,
-      currency: session.currency,
-      paymentStatus: session.payment_status,
-      createdAt: new Date(session.created * 1000),
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+      paymentStatus: paymentIntent.status,
+      createdAt: new Date(paymentIntent.created * 1000),
     });
 
     await order.save();

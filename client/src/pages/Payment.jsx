@@ -47,7 +47,7 @@ export default function Payment() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ userId }), // Only sending userId to the backend
+          body: JSON.stringify({ userId, cartProducts }), // Only sending userId to the backend
         });
 
         const { id } = await response.json();

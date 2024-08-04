@@ -19,7 +19,7 @@ mongoose.connect(process.env.MONGO, {
 });
 export const createCheckoutSession = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId , cartProducts} = req.body;
 
     const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
 
@@ -140,3 +140,31 @@ async function handleChargeFailed(charge) {
     throw new Error(`Error handling charge failure: ${error.message}`);
   }
 }
+
+
+export const getPaymentDetails = async (req, res, next) => {
+  try {
+    // Extract the userId from the request parameters
+    const { userId } = req.params;
+
+    // Ensure userId is provided
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Find the payment details by userId
+    const payment = await Payment.findOne({ userId });
+
+    // If no payment details are found, return a 404 error
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment details not found' });
+    }
+
+    // Return the payment details
+    res.json(payment);
+  } catch (error) {
+    // Handle unexpected errors
+    console.error('Error retrieving payment details:', error);
+    res.status(500).json({ error: 'An error occurred while retrieving the payment details' });
+  }
+};

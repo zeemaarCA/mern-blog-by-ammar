@@ -1,49 +1,77 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { clearCart } from "../redux/cart/cartSlice"; // Import your cart slice action
+import { clearCart } from "../redux/cart/cartSlice";
 import { useSelector } from "react-redux";
 
 export default function PaymentComplete() {
-	const [order, setOrder] = useState(null);
-	const [statusMessage, setStatusMessage] = useState("Processing payment...");
-	const navigate = useNavigate();
-	const location = useLocation();
-	const dispatch = useDispatch();
+  const [order, setOrder] = useState(null);
+  const [payment, setPayment] = useState(null);
+  const [statusMessage, setStatusMessage] = useState("Processing payment...");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
 
-	const currentUser = useSelector((state) => state.user.currentUser);
+  const currentUser = useSelector((state) => state.user.currentUser);
+  const userId = currentUser ? currentUser._id : null;
 
-	const sessionId = currentUser ? currentUser._id : null;
+  useEffect(() => {
+    const fetchOrderAndPaymentDetails = async () => {
+      if (!userId) {
+        setStatusMessage("No user ID found.");
+        return;
+      }
 
-	useEffect(() => {
-		const fetchOrderDetails = async () => {
-			if (!sessionId) {
-				setStatusMessage("No session ID found.");
-				return;
-			}
+      try {
+        // Fetch order details
+        const res = await fetch(`/api/order/${userId}`);
+        const orderData = await res.json();
+        if (res.ok) {
+					setOrder(orderData);
+					// console.log(orderData);
 
-			try {
-				const response = await fetch(`/api/orders/${sessionId}`); // Adjust the API endpoint as needed
-				const data = await response.json();
-				if (response.ok) {
-					setOrder(data);
-					dispatch(clearCart()); // Clear cart from Redux state
-				} else {
-					setStatusMessage("Failed to retrieve order details.");
-				}
-			} catch (error) {
-				setStatusMessage("An error occurred while fetching order details.");
-				console.error("Fetch order details error:", error);
-			}
-		};
+        } else {
+          setStatusMessage("Failed to retrieve order details.");
+        }
 
-		fetchOrderDetails();
-	}, [location.search, dispatch]);
+        // Fetch payment details
+        const paymentResponse = await fetch(`/api/payment/${userId}`);
+        const paymentData = await paymentResponse.json();
+        if (paymentResponse.ok) {
+					setPayment(paymentData);
+					console.log(paymentData);
+        } else {
+          setStatusMessage("Failed to retrieve payment details.");
+        }
 
-	if (!order) {
-		return <div>{statusMessage}</div>;
-	}
+        // Clear cart from Redux state
+        dispatch(clearCart());
+      } catch (error) {
+        setStatusMessage("An error occurred while fetching order and payment details.");
+        console.error("Fetch order and payment details error:", error);
+      }
+    };
 
+    fetchOrderAndPaymentDetails();
+  }, [userId, dispatch]);
+
+// Format amount function
+const formatAmount = (amount) => {
+  if (amount === undefined || amount === null) return '0';
+
+  // Convert amount to number if it's a string
+  const numericAmount = typeof amount === 'string' ? parseInt(amount, 10) : amount;
+
+  // Convert amount from cents to dollars (if needed) and format
+  const formattedAmount = (numericAmount / 100).toFixed(2);
+
+  // Format the amount with commas as thousand separators
+  return new Intl.NumberFormat().format(formattedAmount);
+};
+
+  if (!order || !payment) {
+    return <div>{statusMessage}</div>;
+  }
 	return (
 		<div>
 			<section className="bg-white py-8 antialiased dark:bg-gray-900 md:py-16">
@@ -76,7 +104,7 @@ export default function PaymentComplete() {
 								Payment Method
 							</dt>
 							<dd className="font-medium text-gray-900 dark:text-white sm:text-end">
-								{order.paymentMethod}
+								{payment.paymentMethod}
 							</dd>
 						</dl>
 						<dl className="sm:flex items-center justify-between gap-4">
@@ -89,10 +117,10 @@ export default function PaymentComplete() {
 						</dl>
 						<dl className="sm:flex items-center justify-between gap-4">
 							<dt className="font-normal mb-1 sm:mb-0 text-gray-500 dark:text-gray-400">
-								Address
+								Amount
 							</dt>
 							<dd className="font-medium text-gray-900 dark:text-white sm:text-end">
-								{order.address}
+							${formatAmount(payment.amount)}
 							</dd>
 						</dl>
 						<dl className="sm:flex items-center justify-between gap-4">

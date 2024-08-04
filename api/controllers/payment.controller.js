@@ -20,16 +20,23 @@ mongoose.connect(process.env.MONGO, {
 export const createCheckoutSession = async (req, res) => {
   try {
     const { products, userId } = req.body;
+
+    const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
+
+    if (!cart || cart.items.length === 0) {
+      throw new Error('Cart is empty');
+    }
+    console.log(userId);
     // return;
-    const lineItems = products.map(product => ({
+    const lineItems = cart.items.map(item => ({
       price_data: {
         currency: 'usd',
         product_data: {
-          name: product.title,
+          name: item.title,
         },
-        unit_amount: product.price * 100,
+        unit_amount: item.price * 100,
       },
-      quantity: product.quantity,
+      quantity: item.quantity,
     }));
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -104,7 +111,11 @@ async function handleChargeSucceeded(charge, req, res) {
       orderId: charge.id,
       name: charge.billing_details.name,
       user: charge.billing_details.email,
-      products: cart.items.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity })),
+      products: cart.items.map(p => ({
+        productId: p.id,
+        title: p.title,
+        quantity: p.quantity
+      })),
       amount: charge.amount,
       currency: charge.currency,
       paymentStatus: charge.status,

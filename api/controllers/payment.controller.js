@@ -99,7 +99,7 @@ async function handleCheckoutSessionCompleted(session) {
       amount: session.amount_total,
       currency: session.currency,
       paymentMethod: session.payment_method_types[0], // Simplified assumption
-      receipt_url: session.receipt_url || '',
+      // receipt_url: session.receipt_url || '',
       status: session.payment_status,
       createdAt: new Date(session.created * 1000),
     });

@@ -45,6 +45,7 @@ export const createCheckoutSession = async (req, res) => {
       cancel_url: 'https://mern-blog-erf7.onrender.com/payment-cancel',
       metadata: {
         userId,
+        cartProducts,
       },
     });
     res.json({ id: session.id });

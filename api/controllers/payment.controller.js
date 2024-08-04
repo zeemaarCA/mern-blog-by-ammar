@@ -93,6 +93,7 @@ async function handleCheckoutSessionCompleted(session) {
 
     // Create Payment Record
     const payment = new Payment({
+      userId: userId,
       name: session.customer_details.name,
       user: session.customer_details.email,
       sessionId: session.id,
@@ -109,6 +110,7 @@ async function handleCheckoutSessionCompleted(session) {
     // Create Order Record
     const order = new Order({
       orderId: session.id,
+      userId: userId,
       name: session.customer_details.name,
       user: session.customer_details.email,
       products: cart.items.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity })),

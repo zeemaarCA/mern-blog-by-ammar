@@ -1,17 +1,48 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { clearCart } from "../redux/cart/cartSlice"; // Import your cart slice action
+import { useSelector } from "react-redux";
 
 export default function PaymentComplete() {
+	const [order, setOrder] = useState(null);
 	const [statusMessage, setStatusMessage] = useState("Processing payment...");
 	const navigate = useNavigate();
+	const location = useLocation();
+	const dispatch = useDispatch();
+
+	const currentUser = useSelector((state) => state.user.currentUser);
+
+	const sessionId = currentUser ? currentUser._id : null;
 
 	useEffect(() => {
-		const checkPaymentStatus = async () => {
-			setStatusMessage("Payment completed successfully!");
+		const fetchOrderDetails = async () => {
+			if (!sessionId) {
+				setStatusMessage("No session ID found.");
+				return;
+			}
+
+			try {
+				const response = await fetch(`/api/orders/${sessionId}`); // Adjust the API endpoint as needed
+				const data = await response.json();
+				if (response.ok) {
+					setOrder(data);
+					dispatch(clearCart()); // Clear cart from Redux state
+				} else {
+					setStatusMessage("Failed to retrieve order details.");
+				}
+			} catch (error) {
+				setStatusMessage("An error occurred while fetching order details.");
+				console.error("Fetch order details error:", error);
+			}
 		};
 
-		checkPaymentStatus();
-	}, []);
+		fetchOrderDetails();
+	}, [location.search, dispatch]);
+
+	if (!order) {
+		return <div>{statusMessage}</div>;
+	}
 
 	return (
 		<div>
@@ -26,7 +57,7 @@ export default function PaymentComplete() {
 							href="#"
 							className="font-medium text-gray-900 dark:text-white hover:underline"
 						>
-							#7564804
+							#{order.orderId}
 						</a>{" "}
 						will be processed within 24 hours during working days. We will
 						notify you by email once your order has been shipped.
@@ -37,7 +68,7 @@ export default function PaymentComplete() {
 								Date
 							</dt>
 							<dd className="font-medium text-gray-900 dark:text-white sm:text-end">
-								14 May 2024
+								{new Date(order.createdAt).toLocaleDateString()}
 							</dd>
 						</dl>
 						<dl className="sm:flex items-center justify-between gap-4">
@@ -45,7 +76,7 @@ export default function PaymentComplete() {
 								Payment Method
 							</dt>
 							<dd className="font-medium text-gray-900 dark:text-white sm:text-end">
-								JPMorgan monthly installments
+								{order.paymentMethod}
 							</dd>
 						</dl>
 						<dl className="sm:flex items-center justify-between gap-4">
@@ -53,7 +84,7 @@ export default function PaymentComplete() {
 								Name
 							</dt>
 							<dd className="font-medium text-gray-900 dark:text-white sm:text-end">
-								Flowbite Studios LLC
+								{order.name}
 							</dd>
 						</dl>
 						<dl className="sm:flex items-center justify-between gap-4">
@@ -61,7 +92,7 @@ export default function PaymentComplete() {
 								Address
 							</dt>
 							<dd className="font-medium text-gray-900 dark:text-white sm:text-end">
-								34 Scott Street, San Francisco, California, USA
+								{order.address}
 							</dd>
 						</dl>
 						<dl className="sm:flex items-center justify-between gap-4">
@@ -69,7 +100,7 @@ export default function PaymentComplete() {
 								Phone
 							</dt>
 							<dd className="font-medium text-gray-900 dark:text-white sm:text-end">
-								+(123) 456 7890
+								{order.phone}
 							</dd>
 						</dl>
 					</div>

@@ -7,20 +7,23 @@ import { useSelector, useDispatch } from "react-redux";
 import { toggleTheme } from "../redux/theme/themeSlice";
 import { signoutSuccess } from "../redux/user/userSlice";
 import { useEffect, useState } from "react";
-import { selectTotalQuantity } from "../redux/cart/cartSlice";
+import {
+	clearCart,
+	setCartItems,
+	selectTotalQuantity,
+} from "../redux/cart/cartSlice";
+import { clearCustomerData } from "../redux/customer/customerSlice";
 
 export default function Header() {
 	const totalQuantity = useSelector(selectTotalQuantity);
-	// const { cartCount } = useContext(CartContext);
 	const path = useLocation().pathname;
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { currentUser } = useSelector((state) => state.user);
+	// const { setCartItems } = useSelector((state) => state.cart);
 	const { theme } = useSelector((state) => state.theme);
 	const dispatch = useDispatch();
 	const [searchTerm, setSearchTerm] = useState("");
-
-
 
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search);
@@ -29,6 +32,24 @@ export default function Header() {
 			setSearchTerm(searchTermFromUrl);
 		}
 	}, [location.search]);
+
+	useEffect(() => {
+		if (currentUser) {
+			// Fetch cart items after login
+			const fetchCartItems = async () => {
+				try {
+					const res = await fetch(`/api/cart/${currentUser._id}`);
+					const data = await res.json();
+					if (res.ok) {
+						dispatch(setCartItems(data.cart.items));
+					}
+				} catch (error) {
+					console.log(error.message);
+				}
+			};
+			fetchCartItems();
+		}
+	}, [currentUser, dispatch]);
 
 	const handleSignOut = async () => {
 		try {
@@ -39,7 +60,9 @@ export default function Header() {
 			if (!res.ok) {
 				console.log(data.message);
 			} else {
-				dispatch(signoutSuccess());
+				dispatch(clearCart()); // Clear cart data
+				dispatch(clearCustomerData()); // Clear customer data
+				dispatch(signoutSuccess()); // signout user
 			}
 		} catch (error) {
 			console.log(error.message);
@@ -53,9 +76,6 @@ export default function Header() {
 		const searchQuery = urlParams.toString();
 		navigate(`/search?${searchQuery}`);
 	};
-
-
-
 
 	return (
 		<Navbar className="border-b-2">
@@ -84,7 +104,9 @@ export default function Header() {
 			<div className="flex gap-3 items-center md:order-2">
 				<Link to="/cart" className="relative">
 					<LuShoppingCart className="w-[30px] h-[30px]" />
-					<span className="absolute top-[-5px] right-[-5px] inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">{totalQuantity}</span>
+					<span className="absolute top-[-5px] right-[-5px] inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+						{totalQuantity}
+					</span>
 				</Link>
 				<Button
 					className="w-12 h-10 hidden sm:inline"

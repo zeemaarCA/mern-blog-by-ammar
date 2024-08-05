@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import {store, persistor} from "./redux/store";
+import { store, persistor } from "./redux/store";
 import { Provider } from "react-redux";
-import { PersistGate } from 'redux-persist/integration/react';
+import { PersistGate } from "redux-persist/integration/react";
 const Home = lazy(() => import("./pages/Home"));
 const Projects = lazy(() => import("./pages/Projects"));
 const About = lazy(() => import("./pages/About"));
@@ -32,71 +32,71 @@ function App() {
 	return (
 		<>
 			<Provider store={store}>
-			<PersistGate loading={null} persistor={persistor}>
-				<BrowserRouter>
-					<ScrollToTop />
-					<Header />
-					<Suspense fallback={<Loader />}>
-						<Routes>
-							<Route path="/" element={<Home />}></Route>
-							<Route path="/about" element={<About />}></Route>
-							<Route path="/projects" element={<Projects />}></Route>
-							<Route path="/sign-in" element={<SignIn />}></Route>
-							<Route path="/sign-up" element={<SignUp />}></Route>
-							<Route path="/search" element={<Search />} />
-							<Route path="/cart" element={<Cart />} />
-							<Route path="/products" element={<Products />} />
-							<Route path="/checkout" element={<Checkout />} />
-							<Route path="/payment" element={<Payment />} />
-							<Route element={<PrivateRoute />}>
-								<Route path="/dashboard" element={<Dashboard />}></Route>
+				<PersistGate loading={null} persistor={persistor}>
+					<BrowserRouter>
+						<ScrollToTop />
+						<Header />
+						<Suspense fallback={<Loader />}>
+							<Routes>
+								<Route path="/" element={<Home />}></Route>
+								<Route path="/about" element={<About />}></Route>
+								<Route path="/projects" element={<Projects />}></Route>
+								<Route path="/sign-in" element={<SignIn />}></Route>
+								<Route path="/sign-up" element={<SignUp />}></Route>
+								<Route path="/search" element={<Search />} />
+								<Route path="/products" element={<Products />} />
+								<Route element={<PrivateRoute />}>
+									<Route path="/dashboard" element={<Dashboard />}></Route>
+									<Route path="/checkout" element={<Checkout />} />
+									<Route path="/payment" element={<Payment />} />
+									<Route path="/cart" element={<Cart />} />
+									<Route
+										path="/payment-complete"
+										element={<PaymentComplete />}
+									></Route>
+								</Route>
+								<Route element={<OnlyAdminPrivateRoute />}>
+									<Route path="/create-post" element={<CreatePost />}></Route>
+									<Route
+										path="/create-product"
+										element={<CreateProduct />}
+									></Route>
+									<Route
+										path="/update-post/:postId"
+										element={<UpdatePost />}
+									></Route>
+								</Route>
+								<Route path="/post/:postSlug" element={<PostPage />}></Route>
 								<Route
-									path="/payment-complete"
-									element={<PaymentComplete />}
+									path="/product/:productSlug"
+									element={<ProductPage />}
 								></Route>
-							</Route>
-							<Route element={<OnlyAdminPrivateRoute />}>
-								<Route path="/create-post" element={<CreatePost />}></Route>
-								<Route
-									path="/create-product"
-									element={<CreateProduct />}
-								></Route>
-								<Route
-									path="/update-post/:postId"
-									element={<UpdatePost />}
-								></Route>
-							</Route>
-							<Route path="/post/:postSlug" element={<PostPage />}></Route>
-							<Route
-								path="/product/:productSlug"
-								element={<ProductPage />}
-							></Route>
-						</Routes>
-					</Suspense>
-					<Toaster
-						position="top-center"
-						toastOptions={{
-							// Define default options
-							className: "",
-							duration: 5000,
-							style: {
-								background: "#363636",
-								color: "#fff",
-							},
-
-							// Default options for specific types
-							success: {
-								duration: 3000,
-								theme: {
-									primary: "green",
-									secondary: "black",
+							</Routes>
+						</Suspense>
+						<Toaster
+							position="top-center"
+							toastOptions={{
+								// Define default options
+								className: "",
+								duration: 5000,
+								style: {
+									background: "#363636",
+									color: "#fff",
 								},
-							},
-						}}
-					/>
-					<FooterCom />
+
+								// Default options for specific types
+								success: {
+									duration: 3000,
+									theme: {
+										primary: "green",
+										secondary: "black",
+									},
+								},
+							}}
+						/>
+						<FooterCom />
 					</BrowserRouter>
-					</PersistGate>
+				</PersistGate>
 			</Provider>
 		</>
 	);

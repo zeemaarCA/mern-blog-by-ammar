@@ -6,24 +6,52 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    email:{
+    email: {
         type: String,
         required: true,
         unique: true,
     },
-    password:{
+    password: {
         type: String,
-        required:true,
+        required: true,
     },
-    profilePicture:{
+    profilePicture: {
         type: String,
         default: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
     },
-    isAdmin:{
+    fullName: {
+        type: String,
+        default: null,
+    },
+    phone: {
+        type: String,
+        default: null,
+    },
+    city: {
+        type: String,
+        default: null,
+    },
+    country: {
+        type: String,
+        default: null,
+    },
+    address: {
+        type: String,
+        default: null,
+    },
+    deliveryMethod: {
+        type: String,
+        default: null,
+    },
+    isCompleted: {
         type: Boolean,
         default: false,
     },
-    }, {timestamps: true}
+    isAdmin: {
+        type: Boolean,
+        default: false,
+    },
+}, { timestamps: true }
 );
 
 const User = mongoose.model('User', userSchema);

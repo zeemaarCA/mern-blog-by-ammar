@@ -5,7 +5,7 @@ import { MdOutlineShoppingCart } from "react-icons/md";
 import { CiHeart } from "react-icons/ci";
 import ProductCard from "../components/ProductCard";
 import { addItem } from "../redux/cart/cartSlice";
-import { useSelector, useDispatch  } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 
 export default function ProductPage() {
@@ -15,9 +15,15 @@ export default function ProductPage() {
 	const [isAddedToCart, setIsAddedToCart] = useState(false);
 	const [recentProducts, setRecentProducts] = useState(null);
 	const [loading, setLoading] = useState(false);
+	const [buttonLoading, setButtonLoading] = useState(false);
 
 	const currentUser = useSelector((state) => state.user.currentUser);
 	const dispatch = useDispatch();
+
+	useEffect(() => {
+		setIsAddedToCart(false);
+	}, [productSlug]);
+
 	useEffect(() => {
 		const fetchProduct = async () => {
 			try {
@@ -73,6 +79,7 @@ export default function ProductPage() {
 		};
 
 		try {
+			setButtonLoading(true);
 			const res = await fetch("/api/cart/addcart", {
 				method: "POST",
 				headers: {
@@ -85,12 +92,15 @@ export default function ProductPage() {
 				dispatch(addItem(newProduct));
 				toast.success(`${product.title} added to cart!`);
 				setIsAddedToCart(true);
+				setButtonLoading(false);
 			} else {
 				const data = await res.json();
 				toast.error(data.message || "Failed to add item to cart.");
+				setButtonLoading(false);
 			}
 		} catch (error) {
 			toast.error("An unexpected error occurred. Please try again later.");
+			setButtonLoading(false);
 		}
 	};
 
@@ -135,14 +145,25 @@ export default function ProductPage() {
 											<CiHeart className="mr-2 h-5 w-5" />
 											Add to favorites
 										</Button>
-										<Button
-											gradientDuoTone="pinkToOrange"
-											onClick={handleAddToCart}
-											disabled={isAddedToCart}
-										>
-											<MdOutlineShoppingCart className="mr-2 h-5 w-5" />
-											{isAddedToCart ? "Added to cart" : "Add to cart"}
-										</Button>
+										{buttonLoading ? (
+											<Button gradientDuoTone="pinkToOrange">
+												<Spinner
+													aria-label="Spinner button example"
+													color={"white"}
+													size="sm"
+												/>
+												<span className="pl-3">Adding...</span>
+											</Button>
+										) : (
+											<Button
+												gradientDuoTone="pinkToOrange"
+												onClick={handleAddToCart}
+												disabled={isAddedToCart}
+											>
+												<MdOutlineShoppingCart className="mr-2 h-5 w-5" />
+												{isAddedToCart ? "Added to cart" : "Add to cart"}
+											</Button>
+										)}
 									</div>
 									<hr className="my-6 md:my-8 border-gray-200 dark:border-gray-800" />
 									<div className="mb-6 text-gray-500 dark:text-gray-400">

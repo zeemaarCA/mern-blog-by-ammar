@@ -52,6 +52,36 @@ export const updateUser = async (req, res, next) => {
 
 }
 
+
+export const updateCustomer = async (req, res, next) => {
+  if (req.user.id !== req.params.userId) {
+    return next(errorHandler(403, 'You are not allowed to update this user'))
+  }
+  try {
+    const updatedCustomer = await User.findByIdAndUpdate(
+      req.params.userId,
+      {
+        $set: {
+          email: req.body.email,
+          profilePicture: req.body.profilePicture,
+          fullName: req.body.fullName,
+          country: req.body.country,
+          city: req.body.city,
+          phone: req.body.phone,
+          address: req.body.address,
+          isCompleted: true,
+        },
+      },
+      { new: true }
+    );
+    const { password, ...rest } = updatedCustomer._doc;
+    res.status(200).json(rest);
+  } catch (error) {
+    next(error);
+  }
+
+}
+
 export const deleteUser = async (req, res, next) => {
   if (!req.user.isAdmin && req.user.id !== req.params.userId) {
     return next(errorHandler(403, 'You are not allowed to delete this user'))

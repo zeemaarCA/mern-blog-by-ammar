@@ -1,24 +1,26 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { clearCart } from "../redux/cart/cartSlice";
-import { useSelector } from "react-redux";
+import { Spinner } from "flowbite-react";
 
 export default function PaymentComplete() {
   const [order, setOrder] = useState(null);
   const [payment, setPayment] = useState(null);
-  const [statusMessage, setStatusMessage] = useState("Processing payment...");
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [customer, setCustomer] = useState(null);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
 
   const currentUser = useSelector((state) => state.user.currentUser);
   const userId = currentUser ? currentUser._id : null;
+  const userEmail = currentUser ? currentUser.email : null;
 
   useEffect(() => {
     const fetchOrderAndPaymentDetails = async () => {
       if (!userId) {
         setStatusMessage("No user ID found.");
+        setLoading(false);
         return;
       }
 
@@ -27,9 +29,7 @@ export default function PaymentComplete() {
         const res = await fetch(`/api/order/${userId}`);
         const orderData = await res.json();
         if (res.ok) {
-					setOrder(orderData);
-					// console.log(orderData);
-
+          setOrder(orderData);
         } else {
           setStatusMessage("Failed to retrieve order details.");
         }
@@ -38,10 +38,18 @@ export default function PaymentComplete() {
         const paymentResponse = await fetch(`/api/payment/${userId}`);
         const paymentData = await paymentResponse.json();
         if (paymentResponse.ok) {
-					setPayment(paymentData);
-					console.log(paymentData);
+          setPayment(paymentData);
         } else {
           setStatusMessage("Failed to retrieve payment details.");
+        }
+
+        // Fetch customer details
+        const getCustomer = await fetch(`/api/customer/${userEmail}`);
+        const customerData = await getCustomer.json();
+        if (getCustomer.ok) {
+          setCustomer(customerData);
+        } else {
+          setStatusMessage("Failed to retrieve customer details.");
         }
 
         // Clear cart from Redux state
@@ -49,29 +57,41 @@ export default function PaymentComplete() {
       } catch (error) {
         setStatusMessage("An error occurred while fetching order and payment details.");
         console.error("Fetch order and payment details error:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchOrderAndPaymentDetails();
-  }, [userId, dispatch]);
+  }, [userId, dispatch, userEmail]);
 
-// Format amount function
-const formatAmount = (amount) => {
-  if (amount === undefined || amount === null) return '0';
+  // Format amount function
+  const formatAmount = (amount) => {
+    if (amount === undefined || amount === null) return "0";
 
-  // Convert amount to number if it's a string
-  const numericAmount = typeof amount === 'string' ? parseInt(amount, 10) : amount;
+    // Convert amount to number if it's a string
+    const numericAmount = typeof amount === "string" ? parseInt(amount, 10) : amount;
 
-  // Convert amount from cents to dollars (if needed) and format
-  const formattedAmount = (numericAmount / 100).toFixed(2);
+    // Convert amount from cents to dollars (if needed) and format
+    const formattedAmount = (numericAmount / 100).toFixed(2);
 
-  // Format the amount with commas as thousand separators
-  return new Intl.NumberFormat().format(formattedAmount);
-};
+    // Format the amount with commas as thousand separators
+    return new Intl.NumberFormat().format(formattedAmount);
+  };
 
-  if (!order || !payment) {
+  if (loading) {
+    return (
+			<div className="flex gap-3 flex-col justify-center items-center min-h-screen">
+				<Spinner size="xl" />
+				<span className="text-md font-semibold">Processing Payment...</span>
+		</div>
+    );
+  }
+
+  if (!order || !payment || !customer) {
     return <div>{statusMessage}</div>;
   }
+
 	return (
 		<div>
 			<section className="bg-white py-8 antialiased dark:bg-gray-900 md:py-16">
@@ -125,10 +145,10 @@ const formatAmount = (amount) => {
 						</dl>
 						<dl className="sm:flex items-center justify-between gap-4">
 							<dt className="font-normal mb-1 sm:mb-0 text-gray-500 dark:text-gray-400">
-								Phone
+								Delivery Method
 							</dt>
 							<dd className="font-medium text-gray-900 dark:text-white sm:text-end">
-								{order.phone}
+								{customer?.deliveryMethod}
 							</dd>
 						</dl>
 					</div>
@@ -139,12 +159,11 @@ const formatAmount = (amount) => {
 						>
 							Track your order
 						</a>
-						<a
-							href="#"
+						<Link to={"/prducts"}
 							className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
 						>
 							Return to shopping
-						</a>
+						</Link>
 					</div>
 				</div>
 			</section>

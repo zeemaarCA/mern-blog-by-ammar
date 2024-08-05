@@ -3,54 +3,74 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-hot-toast";
 import OAuth from "../components/OAuth";
-import { Button } from "flowbite-react";
+import { Button, Label, Spinner, TextInput } from "flowbite-react";
 import { setCheckoutFormFilled } from "../redux/checkout/checkoutSlice";
-import { selectCartItems } from "../redux/cart/cartSlice"
+import { selectCartItems } from "../redux/cart/cartSlice";
+import {
+	setCustomerData,
+	getCustomerData,
+} from "../redux/customer/customerSlice";
 
 const Checkout = () => {
-	const cartItems = useSelector(selectCartItems); 
+	const cartItems = useSelector(selectCartItems);
 	const { currentUser } = useSelector((state) => state.user);
-	const dispatch = useDispatch();
-
+	const userId = currentUser?._id;
+	const customerData = useSelector(getCustomerData);
 	const [formData, setFormData] = useState({});
-
-	// console.log(formData);
-
-	useEffect(() => {
-    setFormData({
-      fullName: '',
-      email: currentUser?.email || '',
-      phone: '',
-      city: '',
-      country: '',
-      address: '',
-    });
-	}, [currentUser?.email]);
-
-	useEffect(() => {
-    const fetchCustomerData = async () => {
-      if (currentUser?.email) {
-        try {
-          const res = await fetch(`/api/customer/${currentUser?.email}`);
-          if (!res.ok) {
-            toast("Fill the required fields");
-						return;
-          }
-          const data = await res.json();
-          if (data) {
-            navigate('/payment');
-					}
-					console.log(data);
-        } catch (error) {
-          toast.error(error.message);
-        }
-      }
-    };
-
-    fetchCustomerData();
-  }, [currentUser?.email]);
-
+	const dispatch = useDispatch();
 	const navigate = useNavigate();
+	const [loading, setLoading] = useState(false);
+	// const isCheckoutFormFilled = useSelector((state) => state.checkout.isCheckoutFormFilled);
+
+	// if (isCheckoutFormFilled) {
+	// 	navigate("/payment");
+	// }
+
+	useEffect(() => {
+		if (customerData) {
+			// If customerData exists in Redux, update the formData state
+			setFormData({
+				fullName: customerData.fullName || "",
+				email: customerData.email || "",
+				phone: customerData.phone || "",
+				city: customerData.city || "",
+				country: customerData.country || "",
+				address: customerData.address || "",
+			});
+		} else {
+			// If no customerData in Redux, use default values
+			setFormData({
+				fullName: "",
+				email: currentUser?.email || "",
+				phone: "",
+				city: "",
+				country: "",
+				address: "",
+			});
+		}
+	}, [customerData, currentUser?.email]);
+
+	useEffect(() => {
+		const fetchCustomerData = async () => {
+			if (userId) {
+				try {
+					const res = await fetch(`/api/user/${userId}`);
+					if (!res.ok) {
+						toast("Fill the required fields");
+						return;
+					}
+					const data = await res.json();
+					if (data) {
+						// navigate("/payment");
+					}
+				} catch (error) {
+					toast.error(error.message);
+				}
+			}
+		};
+
+		fetchCustomerData();
+	}, [userId, navigate]);
 
 	const calculateTotalPrice = () => {
 		return cartItems.reduce(
@@ -62,8 +82,9 @@ const Checkout = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			const res = await fetch("/api/customer/addCustomer", {
-				method: "POST",
+			setLoading(true);
+			const res = await fetch(`/api/user/updateCustomer/${userId}`, {
+				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
 				},
@@ -71,17 +92,25 @@ const Checkout = () => {
 			});
 
 			const data = await res.json();
+			// console.log(data);
 			if (!res.ok) {
 				toast.error(data.message);
+				setLoading(false);
 				return;
-      }
-
+			}
+			console.log(data);
 			toast.success("Customer information saved successfully!");
-			dispatch(setCheckoutFormFilled(true)); // Update the global state
-      // Assuming you have navigate function from react-router
-      navigate("/payment");
+			dispatch(
+				setCustomerData({
+					...data,
+				})
+			);
+			dispatch(setCheckoutFormFilled(true));
+			setLoading(false);
+			navigate("/payment");
 		} catch (error) {
 			toast.error(error.message);
+			setLoading(false);
 		}
 	};
 
@@ -112,95 +141,80 @@ const Checkout = () => {
 								</h2>
 								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 									<div>
-										<label
-											htmlFor="your_name"
-											className="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
-										>
-											Your name
-										</label>
-										<input
+										<div className="mb-2 block">
+											<Label htmlFor="name" value="Your name" />
+										</div>
+										<TextInput
+											id="name"
 											type="text"
-											id="your_name"
-											className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500"
-											placeholder="Bonnie Green"
+											placeholder="name@name.com"
 											required
+											value={formData.fullName}
 											onChange={(e) =>
 												setFormData({ ...formData, fullName: e.target.value })
 											}
 										/>
 									</div>
+
 									<div>
-										<label
-											htmlFor="your_email"
-											className="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
-										>
-											Your email*
-										</label>
-										<input
+										<div className="mb-2 block">
+											<Label htmlFor="email" value="Your Email*" />
+										</div>
+										<TextInput
+											id="email"
 											type="email"
-											id="your_email"
-											className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500"
-											placeholder="name@flowbite.com"
-												required
-												value={currentUser.email}
+											placeholder=""
+											required
+											value={formData.email}
 											onChange={(e) =>
 												setFormData({ ...formData, email: e.target.value })
 											}
+											disabled
 										/>
 									</div>
+
 									<div>
-										<div className="mb-2 flex items-center gap-2">
-											<label
-												htmlFor="select-country-input-3"
-												className="block text-sm font-medium text-gray-900 dark:text-white"
-											>
-												Country*
-											</label>
+										<div className="mb-2 block">
+											<Label htmlFor="country" value="Country*" />
 										</div>
-										<input
+										<TextInput
+											id="country"
 											type="text"
-											id="select-country-input-3"
-											className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500"
 											placeholder="Your Country"
 											required
+											value={formData.country}
 											onChange={(e) =>
 												setFormData({ ...formData, country: e.target.value })
 											}
 										/>
 									</div>
+
 									<div>
-										<div className="mb-2 flex items-center gap-2">
-											<label
-												htmlFor="select-city-input-3"
-												className="block text-sm font-medium text-gray-900 dark:text-white"
-											>
-												City*
-											</label>
+										<div className="mb-2 block">
+											<Label htmlFor="city" value="Your City" />
 										</div>
-										<input
+										<TextInput
+											id="city"
 											type="text"
-											id="select-city-input-3"
-											className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500"
 											placeholder="Your City"
 											required
+											value={formData.city}
 											onChange={(e) =>
 												setFormData({ ...formData, city: e.target.value })
 											}
 										/>
 									</div>
+
 									<div>
-										<label
-											htmlFor="phone-input-3"
-											className="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
-										>
-											Phone Number*
-										</label>
-										<input
+										<div className="mb-2 block">
+											<Label htmlFor="phone" value="Phone No." />
+										</div>
+										<TextInput
+											id="phone"
 											type="text"
-											id="phone-input-3"
-											className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500"
-											placeholder="Your Phone"
+											placeholder="Phone No."
 											required
+											value={formData.phone}
 											onChange={(e) =>
 												setFormData({ ...formData, phone: e.target.value })
 											}
@@ -208,133 +222,19 @@ const Checkout = () => {
 									</div>
 
 									<div>
-										<label
-											htmlFor="address"
-											className="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
-										>
-											Address
-										</label>
-										<input
-											type="text"
+										<div className="mb-2 block">
+											<Label htmlFor="address" value="Your Address" />
+										</div>
+										<TextInput
 											id="address"
-											className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500"
-											placeholder="Full Address"
+											type="text"
+											placeholder="Your Address"
 											required
+											value={formData.address}
 											onChange={(e) =>
 												setFormData({ ...formData, address: e.target.value })
 											}
 										/>
-									</div>
-								</div>
-							</div>
-
-							<div className="space-y-4">
-								<h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-									Delivery Methods
-								</h3>
-								<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-									<div className="rounded-lg border border-gray-200 bg-gray-50 p-4 ps-4 dark:border-gray-700 dark:bg-gray-800">
-										<div className="flex items-start">
-											<div className="flex h-5 items-center">
-												<input
-													id="dhl"
-													aria-describedby="dhl-text"
-													type="radio"
-													name="delivery-method"
-													value="dhl"
-													onChange={(e) =>
-														setFormData({
-															...formData,
-															deliveryMethod: e.target.value,
-														})
-													}
-													className="h-4 w-4 border-gray-300 bg-white text-primary-600 focus:ring-2 focus:ring-primary-600 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
-													defaultChecked
-												/>
-											</div>
-											<div className="ms-4 text-sm">
-												<label
-													htmlFor="dhl"
-													className="font-medium leading-none text-gray-900 dark:text-white"
-												>
-													$15 - DHL Fast Delivery
-												</label>
-												<p
-													id="dhl-text"
-													className="mt-1 text-xs font-normal text-gray-500 dark:text-gray-400"
-												>
-													Get it by Tommorow
-												</p>
-											</div>
-										</div>
-									</div>
-									<div className="rounded-lg border border-gray-200 bg-gray-50 p-4 ps-4 dark:border-gray-700 dark:bg-gray-800">
-										<div className="flex items-start">
-											<div className="flex h-5 items-center">
-												<input
-													id="fedex"
-													aria-describedby="fedex-text"
-													type="radio"
-													value="fedex"
-													name="delivery-method"
-													onChange={(e) =>
-														setFormData({
-															...formData,
-															deliveryMethod: e.target.value,
-														})
-													}
-													className="h-4 w-4 border-gray-300 bg-white text-primary-600 focus:ring-2 focus:ring-primary-600 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
-												/>
-											</div>
-											<div className="ms-4 text-sm">
-												<label
-													htmlFor="fedex"
-													className="font-medium leading-none text-gray-900 dark:text-white"
-												>
-													Free Delivery - FedEx
-												</label>
-												<p
-													id="fedex-text"
-													className="mt-1 text-xs font-normal text-gray-500 dark:text-gray-400"
-												>
-													Get it by Friday, 13 Dec 2023
-												</p>
-											</div>
-										</div>
-									</div>
-									<div className="rounded-lg border border-gray-200 bg-gray-50 p-4 ps-4 dark:border-gray-700 dark:bg-gray-800">
-										<div className="flex items-start">
-											<div className="flex h-5 items-center">
-												<input
-													id="express"
-													aria-describedby="express-text"
-													type="radio"
-													value="express"
-													name="delivery-method"
-													onChange={(e) =>
-														setFormData({
-															...formData,
-															deliveryMethod: e.target.value,
-														})
-													}
-													className="h-4 w-4 border-gray-300 bg-white text-primary-600 focus:ring-2 focus:ring-primary-600 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
-												/>
-											</div>
-											<div className="ms-4 text-sm">
-												<label
-													htmlFor="express"
-													className="font-medium leading-none text-gray-900 dark:text-white"
-												>
-													$49 - Express Delivery
-												</label>
-												<p
-													id="express-text"
-													className="mt-1 text-xs font-normal text-gray-500 dark:text-gray-400"
-												>
-													Get it today
-												</p>
-											</div>
-										</div>
 									</div>
 								</div>
 							</div>
@@ -384,14 +284,25 @@ const Checkout = () => {
 							</div>
 						</div>
 						<div className="space-y-3">
-							<Button
-								type="submit"
-								gradientDuoTone="purpleToPink"
-								className="w-full"
-								{...{ disabled: cartItems.length === 0 || !currentUser }}
-							>
-								Proceed to Payment
-							</Button>
+							{loading ? (
+								<Button color="gray" className="w-full">
+									<Spinner
+										aria-label="Spinner button example"
+										size="sm"
+									/>
+									<span className="pl-3">Loading...</span>
+								</Button>
+							) : (
+								<Button
+									type="submit"
+									gradientDuoTone="purpleToPink"
+									className="w-full"
+									{...{ disabled: cartItems.length === 0 || !currentUser }}
+								>
+									Proceed to Payment
+								</Button>
+							)}
+
 							<p className="text-sm font-normal text-gray-500 dark:text-gray-400">
 								<Link
 									to="/login"

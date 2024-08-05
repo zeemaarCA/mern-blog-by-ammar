@@ -2,22 +2,28 @@ import { Link, useNavigate } from "react-router-dom";
 import { TextInput, Label, Button, Alert, Spinner } from "flowbite-react";
 import { SlExclamation } from "react-icons/sl";
 import { useState } from "react";
-import { signInStart, signInSuccess, signInFailure } from "../redux/user/userSlice";
+import {
+	signInStart,
+	signInSuccess,
+	signInFailure,
+} from "../redux/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { setCustomerData } from "../redux/customer/customerSlice";
+import { setCartItems } from "../redux/cart/cartSlice";
 import OAuth from "../components/OAuth";
 
 function SignIn() {
-  const [formdata, setFormdata] = useState({});
-  const {loading, error: errorMessage} = useSelector((state) => state.user);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+	const [formdata, setFormdata] = useState({});
+	const { loading, error: errorMessage } = useSelector((state) => state.user);
+	const navigate = useNavigate();
+	const dispatch = useDispatch();
 	const handleChange = (e) => {
 		setFormdata({ ...formdata, [e.target.id]: e.target.value.trim() });
 	};
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		if (!formdata.email || !formdata.password) {
-      return dispatch(signInFailure("All fields are required"));
+			return dispatch(signInFailure("All fields are required"));
 		}
 		try {
 			dispatch(signInStart());
@@ -28,16 +34,37 @@ function SignIn() {
 				},
 				body: JSON.stringify(formdata),
 			});
-      const data = await res.json();
+			const data = await res.json();
 			if (data.success === false) {
 				dispatch(signInFailure(data.message));
-      }
-      if (res.ok) {
-        dispatch(signInSuccess(data));
-        navigate("/");
-      }
+			}
+			if (res.ok) {
+				dispatch(signInSuccess(data));
+				navigate("/");
+			}
+			// Fetch customer data
+			try {
+				const customerRes = await fetch(`/api/user/${data._id}`); // Assuming your user object has an _id
+				if (customerRes.ok) {
+					const customerData = await customerRes.json();
+					dispatch(setCustomerData(customerData)); // Store customer data in Redux
+				}
+			} catch (error) {
+				console.error("Error fetching customer data:", error.message);
+			}
+
+			// Fetch cart items (if applicable)
+			try {
+				const cartRes = await fetch(`/api/cart/${data._id}`); // Replace with your actual cart endpoint
+				if (cartRes.ok) {
+					const cartItemsData = await cartRes.json();
+					dispatch(setCartItems(cartItemsData.cart.items)); // Store cart items in Redux
+				}
+			} catch (error) {
+				console.error("Error fetching cart items:", error.message);
+			}
 		} catch (error) {
-      dispatch(signInFailure(error.message));
+			dispatch(signInFailure(error.message));
 		}
 	};
 	return (
@@ -58,10 +85,13 @@ function SignIn() {
 				</div>
 				{/* right */}
 
-        <div className="flex-1">
-        {errorMessage && (
+				<div className="flex-1">
+					{errorMessage && (
 						<Alert className="mb-5 font-medium" color="failure">
-							<div className="flex items-center gap-2"><SlExclamation />{errorMessage}</div>
+							<div className="flex items-center gap-2">
+								<SlExclamation />
+								{errorMessage}
+							</div>
 						</Alert>
 					)}
 					<form className="flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -97,7 +127,7 @@ function SignIn() {
 								"Sign In"
 							)}
 						</Button>
-						<OAuth/>
+						<OAuth />
 					</form>
 					<div className="flex gap-2 text-sm mt-5">
 						<span>Do not have an account?</span>
@@ -105,7 +135,6 @@ function SignIn() {
 							Sign Up
 						</Link>
 					</div>
-
 				</div>
 			</div>
 		</div>

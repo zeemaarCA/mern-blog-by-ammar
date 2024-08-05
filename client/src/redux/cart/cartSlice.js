@@ -36,8 +36,10 @@ const cartSlice = createSlice({
       state.items = state.items.filter((item) => item.id !== id);
     },
     clearCart: (state) => {
-			state.items = [];
-		},
+      state.items = [];
+      state.loading = false; // Reset loading state
+      state.error = null;   // Reset error state
+  },
     setError(state, action) {
       state.error = action.payload;
     },
@@ -54,10 +56,17 @@ export const {
   clearCart
 } = cartSlice.actions;
 
+
+
 export const selectCartItems = (state) => state.cart.items;
 
 export const selectTotalQuantity = (state) => {
-  return state.cart.items.reduce((total, item) => total + (item.quantity || 0), 0);
+  // Check if items is an array before reducing
+  return Array.isArray(state.cart.items)
+    ? state.cart.items.reduce((total, item) => total + item.quantity, 0)
+    : 0;
 };
+
+
 
 export default cartSlice.reducer;

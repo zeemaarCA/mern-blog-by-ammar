@@ -44,7 +44,7 @@ export default function PaymentComplete() {
         }
 
         // Fetch customer details
-        const getCustomer = await fetch(`/api/customer/${userEmail}`);
+        const getCustomer = await fetch(`/api/user/${userId}`);
         const customerData = await getCustomer.json();
         if (getCustomer.ok) {
           setCustomer(customerData);

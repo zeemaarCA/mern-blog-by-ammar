@@ -1,7 +1,13 @@
 import { Alert, Button, FileInput, Select, TextInput } from "flowbite-react";
 import ReactQuill from "react-quill";
-import axios from "axios";
 import "react-quill/dist/quill.snow.css";
+import {
+	getDownloadURL,
+	getStorage,
+	ref,
+	uploadBytesResumable,
+} from "firebase/storage";
+import { app } from "../firebase";
 import { useState } from "react";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
@@ -21,29 +27,34 @@ export default function CreateProduct() {
 				return;
 			}
 			setImageUploadError(null);
-			setImageUploadProgress(0);
+			const storage = getStorage(app);
+			const fileName = new Date().getTime() + "-" + file.name;
+			const storageRef = ref(storage, fileName);
 
-			const imageFormData = new FormData();
-      imageFormData.append("file", file);
-			console.log(formData);
-
-			const response = await axios.post("/api/product/upload-image", imageFormData, {
-				headers: {
-					"Content-Type": "multipart/form-data",
-				},
-				onUploadProgress: (progressEvent) => {
+			const uploadTask = uploadBytesResumable(storageRef, file);
+			uploadTask.on(
+				"state_changed",
+				(snapshot) => {
 					const progress = Math.round(
-						(progressEvent.loaded / progressEvent.total) * 100
+						(snapshot.bytesTransferred / snapshot.totalBytes) * 100
 					);
 					setImageUploadProgress(progress.toFixed(0));
 				},
-			});
-
-			setImageUploadProgress(null);
-			setImageUploadError(null);
-			setFormData((prevFormData) => ({ ...prevFormData, image: response.data.filePath }));
+				// eslint-disable-next-line no-unused-vars
+				(error) => {
+					setImageUploadError("Upload upload failed");
+					setImageUploadProgress(null);
+				},
+				() => {
+					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+						setImageUploadProgress(null);
+						setImageUploadError(null);
+						setFormData({ ...formData, image: downloadURL });
+					});
+				}
+			);
 		} catch (error) {
-			setImageUploadError("Upload failed");
+			setImageUploadError("Upload upload failed");
 			setImageUploadProgress(null);
 			console.log(error);
 		}

@@ -47,8 +47,7 @@ app.use('/api/order', orderRoutes);
 app.use('/api/customer', customerRoutes);
 app.use('/api/cart', cartRoutes);
 
-// app.use(express.static(path.join(__dirname, '/client/dist')));
-app.use('/img', express.static(path.join(__dirname, 'src/assets/img')));
+app.use(express.static(path.join(__dirname, '/client/dist')));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));

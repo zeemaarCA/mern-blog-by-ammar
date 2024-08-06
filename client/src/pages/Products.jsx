@@ -181,7 +181,7 @@ export default function Products() {
 											/>
 											<img
 												className="mx-auto hidden h-full dark:block"
-												src={product.image}
+												src={product && product.image}
 											/>
 										</a>
 									</div>

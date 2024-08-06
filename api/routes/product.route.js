@@ -7,19 +7,20 @@ import multer from 'multer';
 const router = express.Router();
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'client/src/assets/img'); // Specify the destination folder
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`); // Append timestamp to the filename
-  }
-});
-const upload = multer({ storage });
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'client/src/assets/img');
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, `${Date.now()}-${file.originalname}`);
+//   }
+// });
+// const upload = multer({ storage });
 
 
 router.post('/create', verifyToken, create);
-router.post('/upload-image', verifyToken, upload.single('file'), uploadImage);
+// router.post('/upload-image', verifyToken, upload.single('file'), uploadImage);
+// router.post('/upload-image', verifyToken, upload.single('file'), uploadImage);
 router.get('/getproducts', getproducts);
 
 

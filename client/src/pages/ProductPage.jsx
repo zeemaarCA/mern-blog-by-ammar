@@ -36,6 +36,7 @@ export default function ProductPage() {
 					return;
 				}
 				setProduct(data.products[0]);
+				console.log(data.products[0]);
 				setLoading(false);
 				setError(false);
 			} catch (error) {
@@ -122,7 +123,7 @@ export default function ProductPage() {
 								<div className="shrink-0 max-w-md lg:max-w-lg mx-auto">
 									<img
 										className="w-full dark:hidden"
-										src={`/${product && product.image}`}
+										src={`${product && product.image}`}
 										alt={product && product.title}
 									/>
 									<img

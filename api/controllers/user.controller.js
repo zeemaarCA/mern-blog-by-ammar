@@ -40,6 +40,11 @@ export const updateUser = async (req, res, next) => {
           email: req.body.email,
           profilePicture: req.body.profilePicture,
           password: req.body.password,
+          fullName: req.body.fullName,
+          country: req.body.country,
+          city: req.body.city,
+          phone: req.body.phone,
+          address: req.body.address,
         },
       },
       { new: true }

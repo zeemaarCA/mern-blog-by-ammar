@@ -13,9 +13,6 @@ export default function Payment() {
 
   const userId = currentUser ? currentUser._id : null;
 
-  console.log(isCheckoutFormFilled);
-  console.log(userId);
-
   useEffect(() => {
     const fetchCartProducts = async () => {
       if (userId) {
@@ -24,7 +21,6 @@ export default function Payment() {
           if (response.ok) {
             const data = await response.json();
             setCartProducts(data.cart.items); // Assuming your cart response has an 'items' array
-            console.log(data.cart.items);
           } else {
             console.error('Error fetching cart data');
           }

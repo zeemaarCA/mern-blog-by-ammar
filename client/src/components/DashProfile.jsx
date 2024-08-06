@@ -1,7 +1,7 @@
-import { Alert, Button, Modal, TextInput } from "flowbite-react";
+import { Alert, Button, Label, Modal, TextInput } from "flowbite-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import {
 	getStorage,
 	ref,
@@ -22,6 +22,7 @@ import {
 	signoutSuccess,
 } from "../redux/user/userSlice";
 import { useDispatch } from "react-redux";
+import toast from "react-hot-toast";
 
 export default function DashProfile() {
 	// eslint-disable-next-line no-unused-vars
@@ -32,16 +33,12 @@ export default function DashProfile() {
 	const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
 	const [imageFileUploadError, setImageFileUploadError] = useState(null);
 	const [imageFileUploading, setImageFileUploading] = useState(false);
-	const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
-	const [updateUserError, setUpdateUserError] = useState(null);
 	const [showModal, setShowModal] = useState(false);
 	const filePickerRef = useRef();
 	const dispatch = useDispatch();
 
-	const handleChage = (e) => {
+	const handleChange = (e) => {
 		setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
-		setUpdateUserSuccess(null);
-		setUpdateUserError(null);
 	};
 
 	const handleImageChange = (e) => {
@@ -109,15 +106,13 @@ export default function DashProfile() {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		setUpdateUserSuccess(null);
-		setUpdateUserError(null);
 		// if user do not change anything
 		if (Object.keys(formData).length === 0) {
-			setUpdateUserError("There is no change to update");
+			toast("There is no change to update")
 			return;
 		}
 		if (imageFileUploading) {
-			setUpdateUserError("Please wait while image is being uploaded");
+			toast("Please wait while image is being uploaded");
 			return;
 		}
 		try {
@@ -130,18 +125,19 @@ export default function DashProfile() {
 				body: JSON.stringify(formData),
 			});
 			const data = await res.json();
+			console.log(data);
+
 			if (!res.ok) {
 				dispatch(updateFailure(data.message));
-				setUpdateUserError(data.message);
+				toast.error(data.message);
 			} else {
 				dispatch(updateSuccess(data));
-				setUpdateUserSuccess("User profile updated successfully");
-				setUpdateUserError(false);
+				toast.success("User profile updated successfully");
 				setImageFileUploadProgress(null);
 			}
 		} catch (error) {
 			dispatch(updateFailure(error.message));
-			setUpdateUserError(error.message);
+			toast.error(error.message);
 		}
 	};
 
@@ -168,7 +164,7 @@ export default function DashProfile() {
 		try {
 			const res = await fetch("/api/user/signout", {
 				method: "POST",
-			})
+			});
 			const data = await res.json();
 			if (!res.ok) {
 				console.log(data.message);
@@ -177,7 +173,8 @@ export default function DashProfile() {
 			}
 		} catch (error) {
 			console.log(error.message);
-		}}
+		}
+	};
 
 	return (
 		<div className="max-w-lg mx-auto p-3 w-full">
@@ -228,63 +225,139 @@ export default function DashProfile() {
 				{imageFileUploadError && (
 					<Alert color="failure">{imageFileUploadError}</Alert>
 				)}
-				<TextInput
-					type="text"
-					id="username"
-					placeholder="username"
-					defaultValue={currentUser.username}
-					onChange={handleChage}
-				/>
-				<TextInput
-					type="email"
-					id="email"
-					className=""
-					placeholder="email"
-					defaultValue={currentUser.email}
-					onChange={handleChage}
-				/>
-				<TextInput
-					type="password"
-					id="password"
-					placeholder="password"
-					onChange={handleChage}
-				/>
-				<Button type="submit" gradientDuoTone="purpleToBlue" outline disabled={loading || imageFileUploading}>
+				<div className="border border-1 border-gray-100 my-6"></div>
+				<div className="flex justify-between gap-2">
+					<div className="w-full">
+						<div className="mb-2 block">
+							<Label htmlFor="username" value="Your username" />
+						</div>
+						<TextInput
+							type="text"
+							id="username"
+							placeholder="username"
+							defaultValue={currentUser.username}
+							onChange={handleChange}
+						/>
+					</div>
+
+					<div className="w-full">
+						<div className="mb-2 block">
+							<Label htmlFor="email" value="Your email" />
+						</div>
+						<TextInput
+							type="email"
+							id="email"
+							className=""
+							placeholder="email"
+							defaultValue={currentUser.email}
+							onChange={handleChange}
+						/>
+					</div>
+				</div>
+
+				<div className="flex justify-between gap-2">
+					<div className="w-full">
+						<div className="mb-2 block">
+							<Label htmlFor="password" value="Your password" />
+						</div>
+						<TextInput
+							type="password"
+							id="password"
+							placeholder="password"
+							onChange={handleChange}
+						/>
+					</div>
+
+					<div className="w-full">
+						<div className="mb-2 block">
+							<Label htmlFor="fullname" value="Your Full Name" />
+						</div>
+						<TextInput
+							type="text"
+							id="fullname"
+							className=""
+							placeholder="Full Name"
+							defaultValue={currentUser.fullName}
+							onChange={handleChange}
+						/>
+					</div>
+				</div>
+
+				<div className="flex justify-between gap-2">
+					<div className="w-full">
+						<div className="mb-2 block">
+							<Label htmlFor="country" value="Country" />
+						</div>
+						<TextInput
+							type="text"
+							id="country"
+							className=""
+							placeholder="Country"
+							defaultValue={currentUser.country}
+							onChange={handleChange}
+						/>
+					</div>
+
+					<div className="w-full">
+						<div className="mb-2 block">
+							<Label htmlFor="city" value="City" />
+						</div>
+
+						<TextInput
+							type="text"
+							id="city"
+							className=""
+							placeholder="City"
+							defaultValue={currentUser.city}
+							onChange={handleChange}
+						/>
+					</div>
+				</div>
+
+				<div className="flex justify-between gap-2">
+					<div className="w-full">
+						<div className="mb-2 block">
+							<Label htmlFor="address" value="Address" />
+						</div>
+						<TextInput
+							type="text"
+							id="address"
+							className=""
+							placeholder="Address"
+							defaultValue={currentUser.address}
+							onChange={handleChange}
+						/>
+					</div>
+				</div>
+
+				<Button
+					type="submit"
+					gradientDuoTone="purpleToBlue"
+					outline
+					disabled={loading || imageFileUploading}
+				>
 					{loading ? "Updating..." : "Update"}
 				</Button>
 				{currentUser.isAdmin && (
-					<Link to={'/create-post'}>
-					<Button
-						type='button'
-						gradientDuoTone='purpleToPink'
-						className='w-full'
-					>
-						Create a post
-					</Button>
-				</Link>
+					<Link to={"/create-post"}>
+						<Button
+							type="button"
+							gradientDuoTone="purpleToPink"
+							className="w-full"
+						>
+							Create a post
+						</Button>
+					</Link>
 				)}
 			</form>
 			<div className="text-red-500 flex justify-between mt-5">
 				<span className="cursor-pointer" onClick={() => setShowModal(true)}>
 					Delete Account
 				</span>
-				<span className="cursor-pointer" onClick={handleSignOut}>Sign Out</span>
+				<span className="cursor-pointer" onClick={handleSignOut}>
+					Sign Out
+				</span>
 			</div>
-			{updateUserSuccess && (
-				<Alert color="success" className="mt-5">
-					{updateUserSuccess}
-				</Alert>
-			)}
-			{updateUserError && (
-				<Alert color="failure" className="mt-5">
-					{updateUserError}
-				</Alert>
-			)}
-			{/* {error && (
-				<Alert color="failure" className="mt-5">
-					{error}
-				</Alert>
-			)} */}
 			<Modal
 				show={showModal}
 				onClose={() => setShowModal(false)}

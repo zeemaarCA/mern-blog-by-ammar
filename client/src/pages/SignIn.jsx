@@ -8,7 +8,6 @@ import {
 	signInFailure,
 } from "../redux/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { setCustomerData } from "../redux/customer/customerSlice";
 import { setCartItems } from "../redux/cart/cartSlice";
 import OAuth from "../components/OAuth";
 
@@ -42,18 +41,6 @@ function SignIn() {
 				dispatch(signInSuccess(data));
 				navigate("/");
 			}
-			// Fetch customer data
-			try {
-				const customerRes = await fetch(`/api/user/${data._id}`); // Assuming your user object has an _id
-				if (customerRes.ok) {
-					const customerData = await customerRes.json();
-					dispatch(setCustomerData(customerData)); // Store customer data in Redux
-				}
-			} catch (error) {
-				console.error("Error fetching customer data:", error.message);
-			}
-
-			// Fetch cart items (if applicable)
 			try {
 				const cartRes = await fetch(`/api/cart/${data._id}`); // Replace with your actual cart endpoint
 				if (cartRes.ok) {

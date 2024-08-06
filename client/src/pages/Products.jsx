@@ -38,7 +38,6 @@ export default function Products() {
 	}, []);
 
 	const handleAddToCart = async (productId) => {
-		console.log("Product ID:", productId);
 		const product = products.find((p) => p._id === productId);
 		if (!product) {
 			toast.error("Product not found");
@@ -62,7 +61,7 @@ export default function Products() {
 		};
 
 		try {
-			setButtonLoading(true);
+			setButtonLoading((prev) => ({ ...prev, [productId]: true }));
 			const res = await fetch("/api/cart/addcart", {
 				method: "POST",
 				headers: {
@@ -73,7 +72,7 @@ export default function Products() {
 
 			if (res.ok) {
 				toast.success(`${product.title} added to cart!`);
-				setButtonLoading(false);
+				setButtonLoading((prev) => ({ ...prev, [productId]: false }));
 				setAddedProducts((prev) => ({
 					...prev,
 					[productId]: true,
@@ -84,11 +83,11 @@ export default function Products() {
 			} else {
 				const data = await res.json();
 				toast.error(data.message || "Failed to add item to cart.");
-				setButtonLoading(false);
+				setButtonLoading((prev) => ({ ...prev, [productId]: false }));
 			}
 		} catch (error) {
 			toast.error("An unexpected error occurred. Please try again later.");
-			setButtonLoading(false);
+			setButtonLoading((prev) => ({ ...prev, [productId]: false }));
 		}
 	};
 
@@ -204,21 +203,27 @@ export default function Products() {
 												${product.price}
 											</p>
 
-                      {buttonLoading[product._id] ? (
-												<Button gradientDuoTone="purpleToBlue" disabled>
+											{buttonLoading[product._id] ? (
+												<Button
+													gradientDuoTone="purpleToBlue"
+													pill={true}
+													disabled
+												>
 													Adding...
 													<Spinner className="ml-1" size="sm" />
 												</Button>
 											) : addedProducts[product._id] ? (
-												<Link to="/cart">
-													<Button gradientDuoTone="purpleToPink">
-														<MdOutlineShoppingCart className="mr-2 h-5 w-5" />
-														View Cart
-													</Button>
-												</Link>
+												<Button
+													gradientDuoTone="purpleToBlue"
+													pill={true}
+													disabled
+												>
+													Added to Cart
+												</Button>
 											) : (
 												<Button
 													gradientDuoTone="purpleToBlue"
+													pill={true}
 													onClick={() => handleAddToCart(product._id)}
 												>
 													<MdOutlineShoppingCart className="mr-2 h-5 w-5" />

@@ -24,9 +24,10 @@ export default function PaymentComplete() {
         return;
       }
 
-      try {
+			try {
+				const timestamp = new Date().getTime();
         // Fetch order details
-        const res = await fetch(`/api/order/${userId}`);
+        const res = await fetch(`/api/order/${userId}?t=${timestamp}`);
         const orderData = await res.json();
         if (res.ok) {
           setOrder(orderData);
@@ -35,7 +36,7 @@ export default function PaymentComplete() {
         }
 
         // Fetch payment details
-        const paymentResponse = await fetch(`/api/payment/${userId}`);
+        const paymentResponse = await fetch(`/api/payment/${userId}?t=${timestamp}`);
         const paymentData = await paymentResponse.json();
         if (paymentResponse.ok) {
           setPayment(paymentData);
@@ -44,7 +45,7 @@ export default function PaymentComplete() {
         }
 
         // Fetch customer details
-        const getCustomer = await fetch(`/api/user/${userId}`);
+        const getCustomer = await fetch(`/api/user/${userId}?t=${timestamp}`);
         const customerData = await getCustomer.json();
         if (getCustomer.ok) {
           setCustomer(customerData);

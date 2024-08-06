@@ -9,13 +9,10 @@ import Cart from '../models/cart.model.js';
 dotenv.config();
 const stripe = new Stripe('sk_test_N9GrXRSMB1nazlDElS0f6QLC');
 const endpointSecret = 'whsec_e1kCDRL8xyrpFAEjF6Lc6V8gR2JgWktQ';
-mongoose.connect(process.env.MONGO, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => {
-  console.log('Connected to MongoDB');
+
+mongoose.connect(process.env.MONGO).then(() => {
 }).catch((err) => {
-  logger.error('MongoDB connection error:', err);
+  console.log(err);
 });
 export const createCheckoutSession = async (req, res) => {
   try {
@@ -154,7 +151,7 @@ export const getPaymentDetails = async (req, res, next) => {
     }
 
     // Find the payment details by userId
-    const payment = await Payment.findOne({ userId });
+    const payment = await Payment.findOne({ userId }).sort({ createdAt: -1 });
 
     // If no payment details are found, return a 404 error
     if (!payment) {

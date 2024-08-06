@@ -12,7 +12,6 @@ import {
 	setCartItems,
 	selectTotalQuantity,
 } from "../redux/cart/cartSlice";
-import { clearCustomerData } from "../redux/customer/customerSlice";
 
 export default function Header() {
 	const totalQuantity = useSelector(selectTotalQuantity);
@@ -20,7 +19,6 @@ export default function Header() {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { currentUser } = useSelector((state) => state.user);
-	// const { setCartItems } = useSelector((state) => state.cart);
 	const { theme } = useSelector((state) => state.theme);
 	const dispatch = useDispatch();
 	const [searchTerm, setSearchTerm] = useState("");
@@ -61,7 +59,7 @@ export default function Header() {
 				console.log(data.message);
 			} else {
 				dispatch(clearCart()); // Clear cart data
-				dispatch(clearCustomerData()); // Clear customer data
+				// dispatch(clearCustomerData()); // Clear customer data
 				dispatch(signoutSuccess()); // signout user
 			}
 		} catch (error) {
@@ -152,9 +150,6 @@ export default function Header() {
 				</Navbar.Link>
 				<Navbar.Link active={path === "/about"} as={"div"}>
 					<Link to="/about">About</Link>
-				</Navbar.Link>
-				<Navbar.Link active={path === "/projects"} as={"div"}>
-					<Link to="/projects">Projects</Link>
 				</Navbar.Link>
 				<Navbar.Link active={path === "/products"} as={"div"}>
 					<Link to="/products">Products</Link>

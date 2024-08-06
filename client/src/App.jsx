@@ -1,10 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import { store, persistor } from "./redux/store";
-import { Provider } from "react-redux";
-import { PersistGate } from "redux-persist/integration/react";
 const Home = lazy(() => import("./pages/Home"));
-const Projects = lazy(() => import("./pages/Projects"));
 const About = lazy(() => import("./pages/About"));
 const SignIn = lazy(() => import("./pages/SignIn"));
 const SignUp = lazy(() => import("./pages/SignUp"));
@@ -31,8 +27,7 @@ import PaymentComplete from "./pages/PaymentComplete";
 function App() {
 	return (
 		<>
-			<Provider store={store}>
-				<PersistGate loading={null} persistor={persistor}>
+
 					<BrowserRouter>
 						<ScrollToTop />
 						<Header />
@@ -40,7 +35,6 @@ function App() {
 							<Routes>
 								<Route path="/" element={<Home />}></Route>
 								<Route path="/about" element={<About />}></Route>
-								<Route path="/projects" element={<Projects />}></Route>
 								<Route path="/sign-in" element={<SignIn />}></Route>
 								<Route path="/sign-up" element={<SignUp />}></Route>
 								<Route path="/search" element={<Search />} />
@@ -74,7 +68,7 @@ function App() {
 							</Routes>
 						</Suspense>
 						<Toaster
-							position="top-center"
+							position="bottom-right"
 							toastOptions={{
 								// Define default options
 								className: "",
@@ -96,8 +90,7 @@ function App() {
 						/>
 						<FooterCom />
 					</BrowserRouter>
-				</PersistGate>
-			</Provider>
+
 		</>
 	);
 }

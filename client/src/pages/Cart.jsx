@@ -20,7 +20,6 @@ export default function Cart() {
         const res = await fetch(`/api/cart/${currentUser._id}`);
         const data = await res.json();
         if (res.ok) {
-          console.log(data.cart.items);
           dispatch(setCartItems(data.cart.items));
         }
       } catch (error) {
@@ -70,7 +69,7 @@ export default function Cart() {
 				const data = await res.json();
 				dispatch(updateItemQuantity({ id: itemId, quantity: newQuantity }));
 				dispatch(setCartItems(data.cart.items));
-				toast.success('Item quantity updated');
+				// toast.success('Item quantity updated');
 			} else {
 				throw new Error('Failed to update item quantity');
 			}

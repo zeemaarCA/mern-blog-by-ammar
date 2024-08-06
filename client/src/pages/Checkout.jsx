@@ -6,16 +6,13 @@ import OAuth from "../components/OAuth";
 import { Button, Label, Spinner, TextInput } from "flowbite-react";
 import { setCheckoutFormFilled } from "../redux/checkout/checkoutSlice";
 import { selectCartItems } from "../redux/cart/cartSlice";
-import {
-	setCustomerData,
-	getCustomerData,
-} from "../redux/customer/customerSlice";
+import { updateStart, updateSuccess, updateFailure } from "../redux/user/userSlice";
 
 const Checkout = () => {
 	const cartItems = useSelector(selectCartItems);
 	const { currentUser } = useSelector((state) => state.user);
 	const userId = currentUser?._id;
-	const customerData = useSelector(getCustomerData);
+	// const customerData = useSelector(getCustomerData);
 	const [formData, setFormData] = useState({});
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
@@ -27,15 +24,15 @@ const Checkout = () => {
 	// }
 
 	useEffect(() => {
-		if (customerData) {
+		if (currentUser) {
 			// If customerData exists in Redux, update the formData state
 			setFormData({
-				fullName: customerData.fullName || "",
-				email: customerData.email || "",
-				phone: customerData.phone || "",
-				city: customerData.city || "",
-				country: customerData.country || "",
-				address: customerData.address || "",
+				fullName: currentUser.fullName || "",
+				email: currentUser.email || "",
+				phone: currentUser.phone || "",
+				city: currentUser.city || "",
+				country: currentUser.country || "",
+				address: currentUser.address || "",
 			});
 		} else {
 			// If no customerData in Redux, use default values
@@ -48,7 +45,7 @@ const Checkout = () => {
 				address: "",
 			});
 		}
-	}, [customerData, currentUser?.email]);
+	}, [currentUser?.email]);
 
 	useEffect(() => {
 		const fetchCustomerData = async () => {
@@ -82,6 +79,7 @@ const Checkout = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
+			dispatch(updateStart());
 			setLoading(true);
 			const res = await fetch(`/api/user/updateCustomer/${userId}`, {
 				method: "PUT",
@@ -92,23 +90,20 @@ const Checkout = () => {
 			});
 
 			const data = await res.json();
-			// console.log(data);
 			if (!res.ok) {
+				dispatch(updateFailure(data.message));
 				toast.error(data.message);
 				setLoading(false);
 				return;
 			}
-			console.log(data);
+			dispatch(updateSuccess(data));
 			toast.success("Customer information saved successfully!");
-			dispatch(
-				setCustomerData({
-					...data,
-				})
-			);
+
 			dispatch(setCheckoutFormFilled(true));
 			setLoading(false);
 			navigate("/payment");
 		} catch (error) {
+			dispatch(updateFailure(error.message));
 			toast.error(error.message);
 			setLoading(false);
 		}

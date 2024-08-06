@@ -8,6 +8,7 @@ import {
 	HiAnnotation,
 	HiChartPie,
 } from "react-icons/hi";
+import { IoBagAdd } from "react-icons/io5";
 import { AiOutlineProduct } from "react-icons/ai";
 import { Link, useLocation } from "react-router-dom";
 import { signoutSuccess } from "../redux/user/userSlice";
@@ -67,6 +68,16 @@ export default function DashSidebar() {
 							as="div"
 						>
 							Profile
+						</Sidebar.Item>
+					</Link>
+					<Link to="/dashboard?tab=orders">
+						<Sidebar.Item
+							active={tab === "orders"}
+							icon={IoBagAdd}
+							labelColor="dark"
+							as="div"
+						>
+							Orders
 						</Sidebar.Item>
 					</Link>
 					{currentUser.isAdmin && (

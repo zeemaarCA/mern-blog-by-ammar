@@ -5,6 +5,7 @@ import {app} from '../firebase.js'
 import { useDispatch } from "react-redux";
 import { signInSuccess } from "../redux/user/userSlice";
 import { useNavigate } from "react-router-dom";
+import { setCartItems } from "../redux/cart/cartSlice.js";
 export default function OAuth() {
   const auth = getAuth();
   const dispatch = useDispatch();
@@ -31,7 +32,19 @@ export default function OAuth() {
       if (res.ok) {
         dispatch(signInSuccess(data));
         navigate("/");
-      }
+			}
+
+			// Fetch cart items (if applicable)
+			try {
+				const cartRes = await fetch(`/api/cart/${data._id}`); // Replace with your actual cart endpoint
+				if (cartRes.ok) {
+					const cartItemsData = await cartRes.json();
+					dispatch(setCartItems(cartItemsData.cart.items)); // Store cart items in Redux
+				}
+			} catch (error) {
+				console.error("Error fetching cart items:", error.message);
+			}
+
 		} catch (error) {
 			console.log(error);
 		}

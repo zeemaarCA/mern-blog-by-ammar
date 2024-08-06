@@ -1,7 +1,36 @@
 import User from '../models/user.model.js';
+import VerificationCode from '../models/verificationCode.model.js';
 import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/error.js';
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
+
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'testinguser1173@gmail.com',
+    pass: 'A@P%vPIV%^2zR2AKuX',
+  },
+});
+
+
+export const verifyEmail = async (req, res, next) => {
+  const { email, code } = req.body;
+
+  try {
+    const verificationRecord = await VerificationCode.findOne({ email, code });
+    if (!verificationRecord) {
+      return next(errorHandler(400, 'Invalid verification code'));
+    }
+
+    await VerificationCode.deleteOne({ email, code }); // Remove the verification code after successful verification
+    res.json('Email verified successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 export const signup = async (req, res, next) => {
   const { username, email, password, fullName, country, city, phone, address, deliveryMethod } = req.body;
@@ -33,8 +62,26 @@ export const signup = async (req, res, next) => {
   });
 
   try {
-    await newUser.save();
-    res.json('Signup successful');
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const newVerificationCode = new VerificationCode({
+      email,
+      code: verificationCode,
+    });
+    await newVerificationCode.save();
+
+    const mailOptions = {
+      from: 'testinguser1173@gamil.com',
+      to: email,
+      subject: 'Email Verification',
+      text: `Your verification code is: ${verificationCode}`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return next(errorHandler(500, 'Failed to send verification email'));
+      }
+      res.json('Signup successful, please check your email for the verification code');
+    });
   } catch (error) {
     next(error)
   }

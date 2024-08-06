@@ -37,7 +37,7 @@ function SignUp() {
       }
       setLoading(false);
       if (res.ok) {
-        navigate("/sign-in");
+				navigate("/verify-email");
       }
 		} catch (error) {
       setLoading(false);

@@ -15,6 +15,7 @@ const Cart = lazy(() => import("./pages/Cart"));
 const Products = lazy(() => import("./pages/Products"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const Payment = lazy(() => import("./pages/Payment"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 
 import PrivateRoute from "./components/PrivateRoute";
 import OnlyAdminPrivateRoute from "./components/OnlyAdminPrivateRoute";
@@ -44,6 +45,7 @@ function App() {
 									<Route path="/checkout" element={<Checkout />} />
 									<Route path="/payment" element={<Payment />} />
 									<Route path="/cart" element={<Cart />} />
+									<Route path="/verify-email" element={<VerifyEmail />} />
 									<Route
 										path="/payment-complete"
 										element={<PaymentComplete />}

@@ -31,7 +31,7 @@ export default function ProductCard({
 				</div>
 				<Link
 					to={`/product/${product.slug}`}
-					className="text-lg font-semibold leading-tight text-gray-900 hover:underline dark:text-white"
+					className="line-clamp-1 text-lg font-semibold leading-tight text-gray-900 hover:underline dark:text-white"
 				>
 					{product.title}
 				</Link>

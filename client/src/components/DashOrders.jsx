@@ -16,23 +16,23 @@ export default function DashOrders() {
 			try {
 				setLoading(true);
 				const res = await fetch(`/api/order/allorders/${currentUser._id}`);
-				const data = await res.json();
 				if (res.ok) {
-					setLoading(false);
+					const data = await res.json();
 					setUserOrders(data);
-					if (data.length < 9) {
-						setShowMore(false);
-					}
+					setShowMore(data.length >= 9);
+				} else {
+					throw new Error("Failed to fetch orders");
 				}
 			} catch (error) {
+				console.error(error.message);
+			} finally {
 				setLoading(false);
-				console.log(error.message);
 			}
 		};
 		if (currentUser) {
 			fetchOrders();
 		}
-  }, [currentUser]);
+	}, [currentUser]);
 
   const formatAmount = (amount) => {
     if (amount === undefined || amount === null) return "0";
@@ -107,7 +107,7 @@ export default function DashOrders() {
 						</Table>
 					</>
 				) : (
-					<p>You have no orders yet!</p>
+					<p className="text-center">You have no orders yet!</p>
 				)}
 			</div>
 		</div>

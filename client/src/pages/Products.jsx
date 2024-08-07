@@ -1,21 +1,16 @@
-import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Button, Spinner } from "flowbite-react";
-import { MdOutlineShoppingCart } from "react-icons/md";
-import toast from "react-hot-toast";
-import { useSelector, useDispatch } from "react-redux";
-import { addItem } from "../redux/cart/cartSlice";
+import { Button } from "flowbite-react";
+import { useSelector } from "react-redux";
+import ProductCard from "../components/ProductCard";
+import AddToCartButton from "../components/AddToCartButton";
 
-export default function Products() {
+export default function Products({ productId }) {
 	const [products, setProducts] = useState([]);
 	const [error, setError] = useState(false);
-	const [addedProducts, setAddedProducts] = useState({});
 	const [showMore, setShowMore] = useState(false);
-	const [buttonLoading, setButtonLoading] = useState({});
 	const [showMorebuttonLoading, setShowMoreButtonLoading] = useState({});
 
 	const currentUser = useSelector((state) => state.user.currentUser);
-	const dispatch = useDispatch();
 
 	useEffect(() => {
 		const fetchProducts = async () => {
@@ -36,60 +31,6 @@ export default function Products() {
 		};
 		fetchProducts();
 	}, []);
-
-	const handleAddToCart = async (productId) => {
-		const product = products.find((p) => p._id === productId);
-		if (!product) {
-			toast.error("Product not found");
-			return;
-		}
-
-		if (!currentUser) {
-			toast.error("Please log in to add items to the cart.");
-			return;
-		}
-
-		const newProduct = {
-			userId: currentUser._id,
-			id: product._id,
-			title: product.title,
-			price: product.price,
-			image: product.image,
-			slug: product.slug,
-			category: product.category,
-			quantity: 1,
-		};
-
-		try {
-			setButtonLoading((prev) => ({ ...prev, [productId]: true }));
-			const res = await fetch("/api/cart/addcart", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(newProduct),
-			});
-
-			if (res.ok) {
-				toast.success(`${product.title} added to cart!`);
-				setButtonLoading((prev) => ({ ...prev, [productId]: false }));
-				setAddedProducts((prev) => ({
-					...prev,
-					[productId]: true,
-				}));
-
-				// Update cart in Redux store
-				dispatch(addItem(newProduct));
-			} else {
-				const data = await res.json();
-				toast.error(data.message || "Failed to add item to cart.");
-				setButtonLoading((prev) => ({ ...prev, [productId]: false }));
-			}
-		} catch (error) {
-			toast.error("An unexpected error occurred. Please try again later.");
-			setButtonLoading((prev) => ({ ...prev, [productId]: false }));
-		}
-	};
 
 	const handleShowMore = async () => {
 		const startIndex = products.length;
@@ -172,67 +113,11 @@ export default function Products() {
 					<div className="mb-4 grid gap-4 sm:grid-cols-2 md:mb-8 lg:grid-cols-3 xl:grid-cols-4">
 						{products.map((product) => (
 							<div key={product._id} className="space-y-6">
-								<div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-									<div className="h-56 w-full">
-										<a href="#">
-											<img
-												className="mx-auto h-full dark:hidden"
-												src={product.image}
-											/>
-											<img
-												className="mx-auto hidden h-full dark:block"
-												src={product && product.image}
-											/>
-										</a>
-									</div>
-									<div className="pt-6">
-										<div className="mb-4 flex items-center justify-between gap-4">
-											<span className="me-2 rounded bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900 dark:text-primary-300">
-												{product.category}
-											</span>
-											<div className="flex items-center justify-end gap-1"></div>
-										</div>
-										<Link
-											to={`/product/${product.slug}`}
-											className="text-lg font-semibold leading-tight text-gray-900 hover:underline dark:text-white"
-										>
-											{product.title}
-										</Link>
-										<div className="mt-4 flex items-center justify-between gap-4">
-											<p className="text-2xl font-extrabold leading-tight text-gray-900 dark:text-white">
-												${product.price}
-											</p>
-
-											{buttonLoading[product._id] ? (
-												<Button
-													gradientDuoTone="purpleToBlue"
-													pill={true}
-													disabled
-												>
-													Adding...
-													<Spinner className="ml-1" size="sm" />
-												</Button>
-											) : addedProducts[product._id] ? (
-												<Button
-													gradientDuoTone="purpleToBlue"
-													pill={true}
-													disabled
-												>
-													Added to Cart
-												</Button>
-											) : (
-												<Button
-													gradientDuoTone="purpleToBlue"
-													pill={true}
-													onClick={() => handleAddToCart(product._id)}
-												>
-													<MdOutlineShoppingCart className="mr-2 h-5 w-5" />
-													Add to Cart
-												</Button>
-											)}
-										</div>
-									</div>
-								</div>
+								<ProductCard
+									key={product._id}
+									product={product}
+									addToCartButton={<AddToCartButton product={product} />}
+								/>
 							</div>
 						))}
 					</div>

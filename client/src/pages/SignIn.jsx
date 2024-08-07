@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { TextInput, Label, Button, Alert, Spinner } from "flowbite-react";
-import { SlExclamation } from "react-icons/sl";
+import { TextInput, Label, Button, Spinner } from "flowbite-react";
 import { useState } from "react";
 import {
 	signInStart,
@@ -10,9 +9,11 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { setCartItems } from "../redux/cart/cartSlice";
 import OAuth from "../components/OAuth";
+import toast from "react-hot-toast";
 
 function SignIn() {
 	const [formdata, setFormdata] = useState({});
+	// eslint-disable-next-line no-unused-vars
 	const { loading, error: errorMessage } = useSelector((state) => state.user);
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
@@ -35,12 +36,28 @@ function SignIn() {
 			});
 			const data = await res.json();
 			if (data.success === false) {
+				if (data.success === false) {
+					dispatch(signInFailure(data.message));
+					if (data.verifyLink) {
+						// Include the verification link in the error message
+						toast.error(
+							<>
+								{data.message} <Link to={data.verifyLink} className="text-pink-500 font-semibold underline ml-3">Verify your email</Link>
+							</>
+						);
+					} else {
+						toast.error(data.message);
+					}
+					return;
+				}
+
 				dispatch(signInFailure(data.message));
 			}
 			if (res.ok) {
 				dispatch(signInSuccess(data));
 				navigate("/");
 			}
+
 			try {
 				const cartRes = await fetch(`/api/cart/${data._id}`); // Replace with your actual cart endpoint
 				if (cartRes.ok) {
@@ -73,14 +90,6 @@ function SignIn() {
 				{/* right */}
 
 				<div className="flex-1">
-					{errorMessage && (
-						<Alert className="mb-5 font-medium" color="failure">
-							<div className="flex items-center gap-2">
-								<SlExclamation />
-								{errorMessage}
-							</div>
-						</Alert>
-					)}
 					<form className="flex flex-col gap-4" onSubmit={handleSubmit}>
 						<div>
 							<Label value="Your email" />

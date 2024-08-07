@@ -39,10 +39,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null,
     },
-    deliveryMethod: {
-        type: String,
-        default: null,
-    },
     isCompleted: {
         type: Boolean,
         default: false,
@@ -50,6 +46,10 @@ const userSchema = new mongoose.Schema({
     isAdmin: {
         type: Boolean,
         default: false,
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
     },
 }, { timestamps: true }
 );

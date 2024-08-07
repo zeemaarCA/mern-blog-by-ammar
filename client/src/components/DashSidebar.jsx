@@ -8,11 +8,13 @@ import {
 	HiAnnotation,
 	HiChartPie,
 } from "react-icons/hi";
+import { TfiPackage } from "react-icons/tfi";
 import { IoBagAdd } from "react-icons/io5";
 import { AiOutlineProduct } from "react-icons/ai";
 import { Link, useLocation } from "react-router-dom";
 import { signoutSuccess } from "../redux/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { clearCart } from "../redux/cart/cartSlice";
 
 export default function DashSidebar() {
 	const dispatch = useDispatch();
@@ -37,7 +39,9 @@ export default function DashSidebar() {
 			if (!res.ok) {
 				console.log(data.message);
 			} else {
-				dispatch(signoutSuccess());
+				dispatch(clearCart()); // Clear cart data
+				// dispatch(clearCustomerData()); // Clear customer data
+				dispatch(signoutSuccess()); // signout user
 			}
 		} catch (error) {
 			console.log(error.message);
@@ -92,11 +96,19 @@ export default function DashSidebar() {
 						</Link>
 					)}
 					{currentUser.isAdmin && (
-						<Link to="/create-product">
+						<Link to="/dashboard?tab=products">
 							<Sidebar.Item
-								icon={AiOutlineProduct}
+								active={tab === "products"}
+								icon={TfiPackage}
 								as="div"
 							>
+								Products
+							</Sidebar.Item>
+						</Link>
+					)}
+					{currentUser.isAdmin && (
+						<Link to="/create-product">
+							<Sidebar.Item icon={AiOutlineProduct} as="div">
 								Add Product
 							</Sidebar.Item>
 						</Link>

@@ -8,18 +8,43 @@ import {
 	uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../firebase";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import { useNavigate } from "react-router-dom";
-export default function CreateProduct() {
+import { useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+export default function UpdatePost() {
 	const [file, setFile] = useState(null);
 	const [imageUploadProgress, setImageUploadProgress] = useState(null);
 	const [imageUploadError, setImageUploadError] = useState(null);
 	const [formData, setFormData] = useState({});
 	const [publishError, setPublishError] = useState(null);
-	console.log(formData);
 	const navigate = useNavigate();
+	const { productId } = useParams();
+	const { currentUser } = useSelector((state) => state.user);
+	useEffect(() => {
+		try {
+			const fetchProduct = async () => {
+				const res = await fetch(
+					`/api/product/getproducts?productId=${productId}`
+				);
+				const data = await res.json();
+				if (!res.ok) {
+					console.log(data.message);
+					setPublishError(data.message);
+					return;
+				}
+				if (res.ok) {
+					setPublishError(null);
+					setFormData(data.products[0]);
+				}
+			};
+
+			fetchProduct();
+		} catch (error) {
+			console.log(error.message);
+		}
+	}, [productId]);
 	const handleUploadImage = async () => {
 		try {
 			if (!file) {
@@ -54,7 +79,7 @@ export default function CreateProduct() {
 				}
 			);
 		} catch (error) {
-			setImageUploadError("Upload upload failed");
+			setImageUploadError("Upload failed");
 			setImageUploadProgress(null);
 			console.log(error);
 		}
@@ -63,16 +88,20 @@ export default function CreateProduct() {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			const res = await fetch("/api/product/create", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(formData),
-			});
+			const res = await fetch(
+				`/api/product/updateproduct/${productId}/${currentUser._id}`,
+				{
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(formData),
+				}
+			);
 			const data = await res.json();
 			if (!res.ok) {
 				setPublishError(data.message);
+				console.log(data.message);
 				return;
 			}
 			if (res.ok) {
@@ -80,14 +109,14 @@ export default function CreateProduct() {
 				navigate(`/product/${data.slug}`);
 			}
 		} catch (error) {
-			setPublishError(error.message);
+			setPublishError("Something went wrong");
 		}
 	};
 
 	return (
 		<div className="p-3 max-w-4xl mx-auto min-h-screen">
 			<h1 className="text-center text-3xl my-7 font-semibold">
-				Create a product
+				Update product
 			</h1>
 			<form className="flex flex-col gap-4" onSubmit={handleSubmit}>
 				<div className="flex flex-col gap-4 sm:flex-row justify-between">
@@ -100,17 +129,29 @@ export default function CreateProduct() {
 						onChange={(e) =>
 							setFormData({ ...formData, title: e.target.value })
 						}
+						value={formData.title}
+					/>
+					<TextInput
+						type="number"
+						placeholder="Price"
+						required
+						id="price"
+						onChange={(e) =>
+							setFormData({ ...formData, price: e.target.value })
+						}
+						value={formData.price}
 					/>
 					<Select
 						onChange={(e) =>
 							setFormData({ ...formData, category: e.target.value })
 						}
+						value={formData.category}
 					>
 						<option value="uncategorized">Select a category</option>
 						<option value="camera">Camera</option>
-						<option value="mobile">Mobile Phones</option>
+						<option value="moblephones">Mobile Phones</option>
 						<option value="laptop">Laptops</option>
-						<option value="computer">Computers</option>
+						<option value="computers">Computers</option>
 					</Select>
 				</div>
 				<div className="flex gap-4 items-center justify-between border-4 border-teal-500 border-dotted p-3">
@@ -147,23 +188,16 @@ export default function CreateProduct() {
 						className="w-full h-72 object-cover"
 					/>
 				)}
-				<TextInput
-					type="number"
-					placeholder="Price"
-					required
-					id="price"
-					className="flex-1"
-					onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-				/>
 				<ReactQuill
 					theme="snow"
 					placeholder="Write something..."
 					className="h-72 mb-12"
 					required
 					onChange={(value) => setFormData({ ...formData, description: value })}
+					value={formData.description}
 				/>
 				<Button type="submit" gradientDuoTone="purpleToPink">
-					Publish
+					Update Product
 				</Button>
 				{publishError && (
 					<Alert color="failure" className="mt-5">

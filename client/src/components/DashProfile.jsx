@@ -23,6 +23,7 @@ import {
 } from "../redux/user/userSlice";
 import { useDispatch } from "react-redux";
 import toast from "react-hot-toast";
+import { clearCart } from "../redux/cart/cartSlice.js";
 
 export default function DashProfile() {
 	// eslint-disable-next-line no-unused-vars
@@ -108,7 +109,7 @@ export default function DashProfile() {
 		e.preventDefault();
 		// if user do not change anything
 		if (Object.keys(formData).length === 0) {
-			toast("There is no change to update")
+			toast("There is no change to update");
 			return;
 		}
 		if (imageFileUploading) {
@@ -169,7 +170,9 @@ export default function DashProfile() {
 			if (!res.ok) {
 				console.log(data.message);
 			} else {
-				dispatch(signoutSuccess());
+				dispatch(clearCart()); // Clear cart data
+				// dispatch(clearCustomerData()); // Clear customer data
+				dispatch(signoutSuccess()); // signout user
 			}
 		} catch (error) {
 			console.log(error.message);
@@ -270,11 +273,11 @@ export default function DashProfile() {
 
 					<div className="w-full">
 						<div className="mb-2 block">
-							<Label htmlFor="fullname" value="Your Full Name" />
+							<Label htmlFor="fullName" value="Your Full Name" />
 						</div>
 						<TextInput
 							type="text"
-							id="fullname"
+							id="fullName"
 							className=""
 							placeholder="Full Name"
 							defaultValue={currentUser.fullName}
@@ -309,6 +312,22 @@ export default function DashProfile() {
 							className=""
 							placeholder="City"
 							defaultValue={currentUser.city}
+							onChange={handleChange}
+						/>
+					</div>
+				</div>
+
+				<div className="flex justify-between gap-2">
+					<div className="w-full">
+						<div className="mb-2 block">
+							<Label htmlFor="phone" value="Phone" />
+						</div>
+						<TextInput
+							type="text"
+							id="phone"
+							className=""
+							placeholder="Phone"
+							defaultValue={currentUser.phone}
 							onChange={handleChange}
 						/>
 					</div>

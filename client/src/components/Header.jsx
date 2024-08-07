@@ -151,9 +151,23 @@ export default function Header() {
 				<Navbar.Link active={path === "/about"} as={"div"}>
 					<Link to="/about">About</Link>
 				</Navbar.Link>
-				<Navbar.Link active={path === "/products"} as={"div"}>
-					<Link to="/products">Products</Link>
-				</Navbar.Link>
+				<Dropdown label="Products" inline>
+					<Link to={"/products"}>
+						<Dropdown.Item>All Products</Dropdown.Item>
+					</Link>
+					<Link to={"category/mobiles"}>
+						<Dropdown.Item>Mobile Phone</Dropdown.Item>
+					</Link>
+					<Link to={"category/cameras"}>
+						<Dropdown.Item>Camera</Dropdown.Item>
+					</Link>
+					<Link to={"category/laptops"}>
+						<Dropdown.Item>Laptop</Dropdown.Item>
+					</Link>
+					<Link to={"category/computers"}>
+						<Dropdown.Item>Computers</Dropdown.Item>
+					</Link>
+				</Dropdown>
 			</Navbar.Collapse>
 		</Navbar>
 	);

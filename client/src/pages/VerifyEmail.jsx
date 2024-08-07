@@ -1,14 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { TextInput, Label, Button, Alert, Spinner } from "flowbite-react";
 import { SlExclamation } from "react-icons/sl";
+import { useSelector } from "react-redux";
 
-function VerifyEmail() {
+export default function VerifyEmail() {
   const [code, setCode] = useState("");
   const [email, setEmail] = useState(""); // Add email state
   const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const currentUser = useSelector((state) => state.user.currentUser);
+
+  useEffect(() => {
+    // Redirect if user is already verified
+    if (currentUser?.isVerified) {
+      navigate('/'); // Redirect to home or any other page
+    }
+  }, [currentUser, navigate]);
+
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -34,7 +45,7 @@ function VerifyEmail() {
       const data = await res.json();
       setLoading(false);
       if (res.ok) {
-        navigate("/home"); // Redirect to home page after successful verification
+        navigate("/sign-in");
       } else {
         setErrorMessage(data.message);
       }
@@ -105,5 +116,3 @@ function VerifyEmail() {
     </div>
   );
 }
-
-export default VerifyEmail;

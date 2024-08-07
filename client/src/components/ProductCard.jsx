@@ -1,24 +1,51 @@
+/* eslint-disable react/prop-types */
 import { Link } from "react-router-dom";
+import AddToCartButton from "../components/AddToCartButton";
 
-export default function ProductCard({ product }) {
+export default function ProductCard({
+	product,
+	buttonLoading = {},  // Default to empty object
+	addedProducts = {}   // Default to empty object
+}) {
+
 	return (
-		<div className="group relative w-full border border-teal-500 hover:border-2 h-[400px] overflow-hidden rounded-lg sm:w-[340px] transition-all">
-			<Link to={`/product/${product.slug}`}>
-				<img
-					src={`${product.image}`}
-					alt="post cover"
-					className="h-[260px] w-full object-cover group-hover:h-[200px] transition-all duration-300 z-20"
-				/>
-			</Link>
-			<div className="p-3 flex flex-col gap-2">
-				<p className="text-lg font-semibold line-clamp-2">{product.title}</p>
-				<span className="italic text-sm">{product.category}</span>
+		<div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+			<div className="h-56 w-full">
+				<Link to={`/product/${product.slug}`}>
+					<img
+						className="mx-auto h-full dark:hidden"
+						src={product.image}
+						loading="lazy"
+					/>
+					<img
+						className="mx-auto hidden h-full dark:block"
+						src={product && product.image}
+					/>
+				</Link>
+			</div>
+			<div className="pt-6">
+				<div className="mb-4 flex items-center justify-between gap-4">
+					<span className="me-2 rounded bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900 dark:text-primary-300">
+						{product.category}
+					</span>
+				</div>
 				<Link
 					to={`/product/${product.slug}`}
-					className="z-10 group-hover:bottom-0 absolute bottom-[-200px] left-0 right-0 border border-teal-500 text-teal-500 hover:bg-teal-500 hover:text-white transition-all duration-300 text-center py-2 rounded-md !rounded-tl-none m-2"
+					className="text-lg font-semibold leading-tight text-gray-900 hover:underline dark:text-white"
 				>
-					View Product
+					{product.title}
 				</Link>
+				<div className="mt-4 flex items-center justify-between gap-4">
+					<p className="text-2xl font-extrabold leading-tight text-gray-900 dark:text-white">
+						${product.price}
+					</p>
+
+					<AddToCartButton
+						product={product}
+						isLoading={buttonLoading[product._id] || false}  // Default to false if undefined
+						isAdded={addedProducts[product._id] || false}    // Default to false if undefined
+					/>
+				</div>
 			</div>
 		</div>
 	);

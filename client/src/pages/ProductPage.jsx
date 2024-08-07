@@ -1,28 +1,19 @@
 import { Alert, Button, Spinner } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { MdOutlineShoppingCart } from "react-icons/md";
 import { CiHeart } from "react-icons/ci";
 import ProductCard from "../components/ProductCard";
-import { addItem } from "../redux/cart/cartSlice";
-import { useSelector, useDispatch } from "react-redux";
-import toast from "react-hot-toast";
+import AddToCartButton from "../components/AddToCartButton"; // Import the new component
 
 export default function ProductPage() {
 	const { productSlug } = useParams();
 	const [product, setProduct] = useState(null);
 	const [error, setError] = useState(false);
-	const [isAddedToCart, setIsAddedToCart] = useState(false);
 	const [recentProducts, setRecentProducts] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const [buttonLoading, setButtonLoading] = useState(false);
 
-	const currentUser = useSelector((state) => state.user.currentUser);
-	const dispatch = useDispatch();
 
-	useEffect(() => {
-		setIsAddedToCart(false);
-	}, [productSlug]);
+	// Function to handle adding to cart
 
 	useEffect(() => {
 		const fetchProduct = async () => {
@@ -31,12 +22,11 @@ export default function ProductPage() {
 				const res = await fetch(`/api/product/getproducts?slug=${productSlug}`);
 				const data = await res.json();
 				if (!res.ok) {
-					setError(data.message || "Failed to fetch the post");
+					setError(data.message || "Failed to fetch the product");
 					setLoading(false);
 					return;
 				}
 				setProduct(data.products[0]);
-				console.log(data.products[0]);
 				setLoading(false);
 				setError(false);
 			} catch (error) {
@@ -48,62 +38,19 @@ export default function ProductPage() {
 	}, [productSlug]);
 
 	useEffect(() => {
-		try {
-			const fetchRecentProducts = async () => {
+		const fetchRecentProducts = async () => {
+			try {
 				const res = await fetch("/api/product/getproducts?limit=3");
 				const data = await res.json();
 				if (res.ok) {
 					setRecentProducts(data.products);
 				}
-			};
-			fetchRecentProducts();
-		} catch (error) {
-			console.log(error.message);
-		}
-	}, []);
-
-	const handleAddToCart = async () => {
-		if (!currentUser) {
-			toast.error("Please log in to add items to the cart.");
-			return;
-		}
-
-		const newProduct = {
-			userId: currentUser._id,
-			id: product._id,
-			title: product.title,
-			price: product.price,
-			image: product.image,
-			slug: product.slug,
-			category: product.category,
-			quantity: 1,
-		};
-
-		try {
-			setButtonLoading(true);
-			const res = await fetch("/api/cart/addcart", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(newProduct),
-			});
-
-			if (res.ok) {
-				dispatch(addItem(newProduct));
-				toast.success(`${product.title} added to cart!`);
-				setIsAddedToCart(true);
-				setButtonLoading(false);
-			} else {
-				const data = await res.json();
-				toast.error(data.message || "Failed to add item to cart.");
-				setButtonLoading(false);
+			} catch (error) {
+				console.log(error.message);
 			}
-		} catch (error) {
-			toast.error("An unexpected error occurred. Please try again later.");
-			setButtonLoading(false);
-		}
-	};
+		};
+		fetchRecentProducts();
+	}, []);
 
 	return (
 		<div>
@@ -146,25 +93,7 @@ export default function ProductPage() {
 											<CiHeart className="mr-2 h-5 w-5" />
 											Add to favorites
 										</Button>
-										{buttonLoading ? (
-											<Button gradientDuoTone="pinkToOrange">
-												<Spinner
-													aria-label="Spinner button example"
-													color={"white"}
-													size="sm"
-												/>
-												<span className="pl-3">Adding...</span>
-											</Button>
-										) : (
-											<Button
-												gradientDuoTone="pinkToOrange"
-												onClick={handleAddToCart}
-												disabled={isAddedToCart}
-											>
-												<MdOutlineShoppingCart className="mr-2 h-5 w-5" />
-												{isAddedToCart ? "Added to cart" : "Add to cart"}
-											</Button>
-										)}
+										<AddToCartButton product={product} />
 									</div>
 									<hr className="my-6 md:my-8 border-gray-200 dark:border-gray-800" />
 									<div className="mb-6 text-gray-500 dark:text-gray-400">
@@ -186,8 +115,12 @@ export default function ProductPage() {
 				<h1 className="text-xl mt-5">Recent Products</h1>
 				<div className="flex flex-wrap gap-5 mt-5 justify-center">
 					{recentProducts &&
-						recentProducts.map((product) => (
-							<ProductCard key={product._id} product={product} />
+						recentProducts.map((recentProduct) => (
+							<ProductCard
+								key={recentProduct._id}
+								product={recentProduct}
+								addToCartButton={<AddToCartButton product={product} />}
+							/>
 						))}
 				</div>
 			</div>

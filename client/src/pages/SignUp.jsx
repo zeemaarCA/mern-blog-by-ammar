@@ -1,12 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
-import { TextInput, Label, Button, Alert, Spinner } from "flowbite-react";
-import { SlExclamation } from "react-icons/sl";
+import { TextInput, Label, Button, Spinner } from "flowbite-react";
 import { useState } from "react";
 import OAuth from "../components/OAuth";
+import toast from "react-hot-toast";
 
 function SignUp() {
   const [formdata, setFormdata] = useState({});
-	const [errorMessage, setErrorMessage] = useState(null);
 	const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -16,13 +15,12 @@ function SignUp() {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		if (!formdata.email || !formdata.password || !formdata.username) {
-      setErrorMessage("All fields are required");
+			toast.error("All fields are required");
       setLoading(false);
       return;
 		}
 		try {
 			setLoading(true);
-			setErrorMessage(null);
 			const res = await fetch("/api/auth/signup", {
 				method: "POST",
 				headers: {
@@ -33,7 +31,7 @@ function SignUp() {
       const data = await res.json();
       setLoading(false);
 			if (data.success === false) {
-				return setErrorMessage(data.message);
+				return toast.error(data.message);
       }
       setLoading(false);
       if (res.ok) {
@@ -41,7 +39,7 @@ function SignUp() {
       }
 		} catch (error) {
       setLoading(false);
-			setErrorMessage(error.message);
+			toast.error(error.message);
 		}
 	};
 	return (
@@ -63,11 +61,6 @@ function SignUp() {
 				{/* right */}
 
 				<div className="flex-1">
-				{errorMessage && (
-						<Alert className="mb-5 font-medium" color="failure">
-							<div className="flex items-center gap-2"><SlExclamation />{errorMessage}</div>
-						</Alert>
-					)}
 					<form className="flex flex-col gap-4" onSubmit={handleSubmit}>
 						<div>
 							<Label value="Your username" />

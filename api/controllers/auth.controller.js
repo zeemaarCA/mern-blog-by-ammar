@@ -9,8 +9,8 @@ import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'testinguser1173@gmail.com',
-    pass: 'A@P%vPIV%^2zR2AKuX',
+    user: 'ammar@tradexx21.com',
+    pass: 'viidfdzigbhydygn',
   },
 });
 
@@ -25,6 +25,7 @@ export const verifyEmail = async (req, res, next) => {
     }
 
     await VerificationCode.deleteOne({ email, code }); // Remove the verification code after successful verification
+    await User.updateOne({ email }, { $set: { isVerified: true } });
     res.json('Email verified successfully');
   } catch (error) {
     next(error);
@@ -45,6 +46,27 @@ export const signup = async (req, res, next) => {
   ) {
     next(errorHandler(400, 'All fields are required'));
   }
+  if (req.body.password) {
+    if (password.length < 6) {
+      return next(errorHandler(400, 'Password must be at least 6 characters'));
+    }
+  }
+
+  if (username) {
+    if (username.length < 6 || username.length > 20) {
+      return next(errorHandler(400, 'Username must be between 6 and 20 characters'))
+    }
+    if (username.includes(' ')) {
+      return next(errorHandler(400, 'Username cannot contain spaces'))
+    }
+    if (username !== username.toLowerCase()) {
+      return next(errorHandler(400, 'Username must be lowercase'))
+    }
+    if (!username.match(/^[a-zA-Z0-9]+$/)) {
+      return next(errorHandler(400, 'Username must only contain letters and numbers'))
+    }
+  }
+
 
   const hashedPassword = bcryptjs.hashSync(password, 10);
 
@@ -68,6 +90,7 @@ export const signup = async (req, res, next) => {
       code: verificationCode,
     });
     await newVerificationCode.save();
+    await newUser.save();
 
     const mailOptions = {
       from: 'testinguser1173@gamil.com',
@@ -78,6 +101,7 @@ export const signup = async (req, res, next) => {
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
+        console.error('Error sending email:', error);
         return next(errorHandler(500, 'Failed to send verification email'));
       }
       res.json('Signup successful, please check your email for the verification code');
@@ -99,6 +123,16 @@ export const signin = async (req, res, next) => {
     if (!validUser) {
       return next(errorHandler(400, 'User not found'));
     }
+
+    if (!validUser.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email not verified',
+        verifyLink: '/verify-email', // Include the link to the verification page
+      });
+    }
+
+
     const validPassword = bcryptjs.compareSync(password, validUser.password);
 
     if (!validPassword) {

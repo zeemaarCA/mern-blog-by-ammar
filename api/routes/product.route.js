@@ -1,6 +1,6 @@
 import express from 'express'
 import { verifyToken } from '../utils/verifyUser.js';
-import { create, getproducts, uploadImage } from '../controllers/product.controller.js';
+import { create, getproducts, uploadImage, deleteproduct, updateproduct } from '../controllers/product.controller.js';
 import multer from 'multer';
 
 
@@ -20,8 +20,9 @@ const router = express.Router();
 
 router.post('/create', verifyToken, create);
 // router.post('/upload-image', verifyToken, upload.single('file'), uploadImage);
-// router.post('/upload-image', verifyToken, upload.single('file'), uploadImage);
 router.get('/getproducts', getproducts);
+router.delete('/deleteproduct/:productId/:userId', verifyToken, deleteproduct);
+router.put('/updateproduct/:productId/:userId', verifyToken, updateproduct);
 
 
 

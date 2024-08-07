@@ -1,26 +1,32 @@
 import { useState, useEffect } from "react";
 import ProductCard from "../components/ProductCard";
 import AddToCartButton from "../components/AddToCartButton";
+import { Spinner } from "flowbite-react";
 
 export default function ShopCategory({ productId, category }) {
 	const [products, setProducts] = useState([]);
 	const [error, setError] = useState(false);
+	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		const fetchProducts = async () => {
 			try {
+				setLoading(true);
 				const res = await fetch(`/api/product/getproducts`);
 				const data = await res.json();
 				if (!res.ok) {
 					setError(data.message || "Failed to fetch the products");
+					setLoading(false);
 					return;
 				}
 				if (res.ok) {
 					setProducts(data.products);
+					setLoading(false);
 					setError(false);
 				}
 			} catch (error) {
 				setError("An unexpected error occurred. Please try again later.");
+				setLoading(false);
 			}
 		};
 		fetchProducts();
@@ -36,7 +42,11 @@ export default function ShopCategory({ productId, category }) {
 						</h2>
 					</div>
 				</div>
-				{products.length > 0 ? (
+				{loading ? (
+					<div className="flex justify-center items-center min-h-screen">
+						<Spinner size="xl" />
+					</div>
+				) : products.length > 0 ? (
 					<div className="mb-4 grid gap-4 sm:grid-cols-2 md:mb-8 lg:grid-cols-3 xl:grid-cols-4">
 						{products
 							.filter(

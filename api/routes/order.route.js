@@ -1,13 +1,14 @@
 import express from 'express'
 import { verifyToken } from '../utils/verifyUser.js';
-import { allorders, orders } from '../controllers/order.controller.js';
+import { userorders, orders, allorders } from '../controllers/order.controller.js';
 
 
 const router = express.Router();
 
 
+router.get('/allorders', verifyToken, allorders);
 router.get('/:userId', verifyToken, orders);
-router.get('/allorders/:userId', verifyToken, allorders);
+router.get('/userorders/:userId', verifyToken, userorders);
 
 
 

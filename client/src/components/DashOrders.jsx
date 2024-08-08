@@ -1,25 +1,20 @@
-import { Badge, Button, Modal, Spinner, Table } from "flowbite-react";
+import { Badge, Spinner, Table } from "flowbite-react";
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 
 export default function DashOrders() {
 	const { currentUser } = useSelector((state) => state.user);
 	const [userOrders, setUserOrders] = useState([]);
-	const [showMore, setShowMore] = useState(true);
-	const [showModal, setShowModal] = useState(false);
-	const [postIdToDelete, setPostIdToDelete] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [buttonLoading, setButtonLoading] = useState(false);
 
 	useEffect(() => {
 		const fetchOrders = async () => {
 			try {
 				setLoading(true);
-				const res = await fetch(`/api/order/allorders/${currentUser._id}`);
+				const res = await fetch(`/api/order/userorders/${currentUser._id}`);
 				if (res.ok) {
 					const data = await res.json();
 					setUserOrders(data);
-					setShowMore(data.length >= 9);
 				} else {
 					throw new Error("Failed to fetch orders");
 				}
@@ -66,9 +61,7 @@ export default function DashOrders() {
 								<Table.HeadCell>Color</Table.HeadCell>
 								<Table.HeadCell>Payment Stauts</Table.HeadCell>
 								<Table.HeadCell>Price</Table.HeadCell>
-								<Table.HeadCell>
-									<span className="sr-only">Edit</span>
-								</Table.HeadCell>
+								<Table.HeadCell>Status</Table.HeadCell>
 							</Table.Head>
 							<Table.Body className="divide-y">
 								{userOrders.map((order) => (
@@ -98,7 +91,7 @@ export default function DashOrders() {
 												href="#"
 												className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
 											>
-												Edit
+												Processing
 											</a>
 										</Table.Cell>
 									</Table.Row>

@@ -13,6 +13,7 @@ const orderSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
   currency: { type: String, required: true },
   paymentStatus: { type: String, required: true },
+  orderStauts: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 const Order = mongoose.model('Order', orderSchema);

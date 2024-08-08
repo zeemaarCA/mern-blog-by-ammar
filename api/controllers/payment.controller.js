@@ -115,6 +115,7 @@ async function handleCheckoutSessionCompleted(session) {
       amount: session.amount_total,
       currency: session.currency,
       paymentStatus: session.payment_status,
+      orderStatus: 'Pending',
       createdAt: new Date(session.created * 1000),
     });
 

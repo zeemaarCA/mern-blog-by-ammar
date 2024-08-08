@@ -1,4 +1,30 @@
-import Order from '../models/order.model.js'; // Import your Order model
+import Order from '../models/order.model.js';
+import { errorHandler } from "../utils/error.js";
+
+export const allorders = async (req, res, next) => {
+
+  if (!req.user.isAdmin) {
+    return next(errorHandler(403, 'You are not allowed to see all orders'))
+  }
+
+  try {
+    // Fetch all orders without filtering by userId
+    const allorders = await Order.find();
+
+    // If no orders are found, return a 404 error
+    if (allorders.length === 0) {
+      return res.status(404).json({ error: 'No orders found' });
+    }
+
+    // Return the orders
+    res.json(allorders);
+  } catch (error) {
+    // Handle unexpected errors
+    next(error);
+  }
+};
+
+
 
 export const orders = async (req, res, next) => {
   try {
@@ -28,7 +54,7 @@ export const orders = async (req, res, next) => {
 };
 
 
-export const allorders = async (req, res, next) => {
+export const userorders = async (req, res, next) => {
   try {
     // Extract the userId from the request parameters
     const { userId } = req.params;
@@ -53,3 +79,5 @@ export const allorders = async (req, res, next) => {
     next(error);
   }
 };
+
+

@@ -107,6 +107,17 @@ export default function DashSidebar() {
 						</Link>
 					)}
 					{currentUser.isAdmin && (
+						<Link to="/dashboard?tab=allorders">
+							<Sidebar.Item
+								active={tab === "allorders"}
+								icon={IoBagAdd}
+								as="div"
+							>
+								All Orders
+							</Sidebar.Item>
+						</Link>
+					)}
+					{currentUser.isAdmin && (
 						<Link to="/create-product">
 							<Sidebar.Item icon={AiOutlineProduct} as="div">
 								Add Product

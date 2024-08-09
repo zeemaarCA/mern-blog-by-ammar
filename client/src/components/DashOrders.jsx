@@ -29,18 +29,19 @@ export default function DashOrders() {
 		}
 	}, [currentUser]);
 
-  const formatAmount = (amount) => {
-    if (amount === undefined || amount === null) return "0";
+	const formatAmount = (amount) => {
+		if (amount === undefined || amount === null) return "0";
 
-    // Convert amount to number if it's a string
-    const numericAmount = typeof amount === "string" ? parseInt(amount, 10) : amount;
+		// Convert amount to number if it's a string
+		const numericAmount =
+			typeof amount === "string" ? parseInt(amount, 10) : amount;
 
-    // Convert amount from cents to dollars (if needed) and format
-    const formattedAmount = (numericAmount / 100).toFixed(2);
+		// Convert amount from cents to dollars (if needed) and format
+		const formattedAmount = (numericAmount / 100).toFixed(2);
 
-    // Format the amount with commas as thousand separators
-    return new Intl.NumberFormat().format(formattedAmount);
-  };
+		// Format the amount with commas as thousand separators
+		return new Intl.NumberFormat().format(formattedAmount);
+	};
 
 	return (
 		<div className="w-full">
@@ -65,34 +66,56 @@ export default function DashOrders() {
 							</Table.Head>
 							<Table.Body className="divide-y">
 								{userOrders.map((order) => (
-									<Table.Row key={order._id} className="bg-white dark:border-gray-700 dark:bg-gray-800">
-                      {/* <Table.Cell>{order.orderId}</Table.Cell> */}
+									<Table.Row
+										key={order._id}
+										className="bg-white dark:border-gray-700 dark:bg-gray-800"
+									>
+										{/* <Table.Cell>{order.orderId}</Table.Cell> */}
 										<Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
 											{/* You need to extract and render product details here */}
-											{order.products.map(product => (
+											{order.products.map((product) => (
 												<div key={product._id}>
 													<p>{product.title}</p>
 												</div>
 											))}
-                    </Table.Cell>
-                    <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+										</Table.Cell>
+										<Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
 											{/* You need to extract and render product details here */}
-											{order.products.map(product => (
+											{order.products.map((product) => (
 												<div key={product._id}>
 													<p>{product.quantity}</p>
 												</div>
 											))}
 										</Table.Cell>
 										<Table.Cell>{order.currency}</Table.Cell>
-										<Table.Cell><Badge color="success" className="inline">{order.paymentStatus}</Badge></Table.Cell>
-										<Table.Cell><span className="font-medium text-gray-900 dark:text-white">${formatAmount(order.amount)}</span></Table.Cell>
 										<Table.Cell>
-											<a
-												href="#"
-												className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+											<Badge color="success" className="inline">
+												{order.paymentStatus}
+											</Badge>
+										</Table.Cell>
+										<Table.Cell>
+											<span className="font-medium text-gray-900 dark:text-white">
+												${formatAmount(order.amount)}
+											</span>
+										</Table.Cell>
+										<Table.Cell>
+											<Badge
+												color={`${
+													order.orderStatus === "Processing"
+														? "warning"
+														: order.orderStatus === "Shipped"
+														? "indigo"
+														: order.orderStatus === "Delivered"
+														? "success"
+														: order.orderStatus === "Cancelled"
+														? "failure"
+														: order.orderStatus === "Pending"
+														? "dark"
+														: "dark"
+												}`}
 											>
-												Processing
-											</a>
+												{order.orderStatus || "Processing"}
+											</Badge>
 										</Table.Cell>
 									</Table.Row>
 								))}

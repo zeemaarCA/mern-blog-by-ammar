@@ -9,6 +9,7 @@ import DashboardComp from '../components/DashboardComp';
 import DashOrders from '../components/DashOrders';
 import DashAllOrders from '../components/DashAllOrders'
 import DashProducts from '../components/DashProducts';
+import DashPayments from '../components/DashPayments';
 
 function Dashboard() {
 
@@ -39,6 +40,7 @@ function Dashboard() {
       {tab === 'comments' && <DashComments />}
       {tab === 'orders' && <DashOrders />}
       {tab === 'allorders' && <DashAllOrders />}
+      {tab === 'payments' && <DashPayments />}
       {tab === 'products' && <DashProducts />}
     </div>
   )

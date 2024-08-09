@@ -80,4 +80,40 @@ export const userorders = async (req, res, next) => {
   }
 };
 
+export const updateOrderStatus = async (req, res, next) => {
+
+  if (!req.user.isAdmin) {
+    return next(errorHandler(403, 'You are not allowed to update this order'))
+  }
+  try {
+    const updatedStatus = await Order.findByIdAndUpdate(
+      req.params.orderId,
+      {
+        $set: {
+          orderStatus: req.body.orderStatus
+        },
+      },
+      { new: true }
+    );
+    if (!updatedStatus) {
+      return next(errorHandler(404, 'Order not found'));
+    }
+    res.status(200).json(updatedStatus);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const deleteorder = async (req, res, next) => {
+  if (!req.user.isAdmin) {
+    return next(errorHandler(403, 'You are not allowed to delete this order'))
+  }
+  try {
+    await Order.findByIdAndDelete(req.params.orderId);
+    res.status(200).json('Order has been deleted');
+  } catch (error) {
+    next(error)
+  }
+}
+
 

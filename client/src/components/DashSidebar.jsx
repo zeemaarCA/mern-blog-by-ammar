@@ -15,6 +15,7 @@ import { Link, useLocation } from "react-router-dom";
 import { signoutSuccess } from "../redux/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { clearCart } from "../redux/cart/cartSlice";
+import { MdPayment } from "react-icons/md";
 
 export default function DashSidebar() {
 	const dispatch = useDispatch();
@@ -114,6 +115,17 @@ export default function DashSidebar() {
 								as="div"
 							>
 								All Orders
+							</Sidebar.Item>
+						</Link>
+					)}
+					{currentUser.isAdmin && (
+						<Link to="/dashboard?tab=payments">
+							<Sidebar.Item
+								active={tab === "payments"}
+								icon={MdPayment}
+								as="div"
+							>
+								Payments
 							</Sidebar.Item>
 						</Link>
 					)}

@@ -8,7 +8,6 @@ import commentRoutes from './routes/comment.route.js';
 import productRoutes from './routes/product.route.js';
 import paymentRoutes from './routes/payment.route.js';
 import orderRoutes from './routes/order.route.js';
-import customerRoutes from './routes/customer.route.js';
 import cartRoutes from './routes/cart.route.js';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
@@ -44,7 +43,6 @@ app.use('/api/comment', commentRoutes);
 app.use('/api/product', productRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/order', orderRoutes);
-app.use('/api/customer', customerRoutes);
 app.use('/api/cart', cartRoutes);
 
 app.use(express.static(path.join(__dirname, '/client/dist')));

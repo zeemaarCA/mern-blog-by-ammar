@@ -1,9 +1,10 @@
-import { Alert, Button, Modal, Spinner, Table } from "flowbite-react";
-import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { Spinner, Table } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { toast } from "react-hot-toast";
 import { FaCheck, FaTimes } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import Modals from "./Modals";
 
 export default function DashUsers() {
 	const { currentUser } = useSelector((state) => state.user);
@@ -11,8 +12,6 @@ export default function DashUsers() {
 	const [showMore, setShowMore] = useState(false);
 	const [showModal, setShowModal] = useState(false);
 	const [userIdToDelete, setUserIdToDelete] = useState("");
-	const [error, setError] = useState("");
-	const [success, setSuccess] = useState("");
 	const [warning, setWarning] = useState("");
 	const [loading, setLoading] = useState(false);
 	useEffect(() => {
@@ -68,13 +67,11 @@ export default function DashUsers() {
 			});
 			const data = await res.json();
 			if (!res.ok) {
-				setError(data.message);
-				setSuccess("");
+				toast.error(data.message);
 			}
 			if (res.ok) {
 				setUsers((prev) => prev.filter((user) => user._id !== userIdToDelete));
-				setSuccess("User deleted successfully");
-				setError("");
+				toast.success("User deleted successfully");
 			}
 		} catch (error) {
 			console.log(error.message);
@@ -159,40 +156,12 @@ export default function DashUsers() {
 			) : (
 				<>{warning ? <p>{warning}</p> : ""}</>
 			)}
-			{error && (
-				<Alert color="failure" className="mt-5">
-					{error}
-				</Alert>
-			)}
-			{success && (
-				<Alert color="success" className="mt-5">
-					{success}
-				</Alert>
-			)}
-			<Modal
+			<Modals
 				show={showModal}
 				onClose={() => setShowModal(false)}
 				popup
-				size="md"
-			>
-				<Modal.Header />
-				<Modal.Body>
-					<div className="text-center">
-						<HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
-						<h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
-							Are you sure you want to delete this user?
-						</h3>
-						<div className="flex justify-center gap-4">
-							<Button color="failure" onClick={handleDeleteUser}>
-								Yes, I am sure
-							</Button>
-							<Button color="gray" onClick={() => setShowModal(false)}>
-								No, cancel
-							</Button>
-						</div>
-					</div>
-				</Modal.Body>
-			</Modal>
+				onDeleteConfirm={handleDeleteUser}
+			/>
 		</div>
 	);
 }

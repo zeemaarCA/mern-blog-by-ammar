@@ -1,16 +1,24 @@
-import { Badge, Button, Label, Modal, Select, Spinner, Table } from "flowbite-react";
-import { useSelector } from "react-redux";
+import {
+  Badge,
+  Button,
+  Label,
+  Select,
+  Spinner,
+  Table,
+  TableCell
+} from "flowbite-react";
 import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 import { MdDelete, MdOutlineEdit } from "react-icons/md";
+import { useSelector } from "react-redux";
+import Modals from "./Modals";
 
 export default function DashOrders() {
 	const { currentUser } = useSelector((state) => state.user);
 	const [userOrders, setUserOrders] = useState([]);
-	const [showMore, setShowMore] = useState(true);
 	const [showModal, setShowModal] = useState(false);
-	const [postIdToDelete, setPostIdToDelete] = useState("");
+	const [orderIdToDelete, setOrderIdToDelete] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [buttonLoading, setButtonLoading] = useState(false);
 	const [activeDropdown, setActiveDropdown] = useState(null);
 
 	useEffect(() => {
@@ -21,7 +29,7 @@ export default function DashOrders() {
 				if (res.ok) {
 					const data = await res.json();
 					setUserOrders(data);
-					setShowMore(data.length >= 9);
+					// setShowMore(data.length >= 9);
 				} else {
 					throw new Error("Failed to fetch orders");
 				}
@@ -48,16 +56,67 @@ export default function DashOrders() {
 
 		// Format the amount with commas as thousand separators
 		return new Intl.NumberFormat().format(formattedAmount);
-  };
+	};
 
-  const handleDropdownToggle = (orderId) => {
+	const handleDropdownToggle = (orderId) => {
 		// If the clicked dropdown is already active, close it; otherwise, open it
 		setActiveDropdown(activeDropdown === orderId ? null : orderId);
 	};
 
+	const handleStatusChange = async (orderId, orderStatus) => {
+		// console.log(orderId, status);
+		try {
+			const res = await fetch(`/api/order/updatestatus/${orderId}`, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					orderStatus,
+				}),
+			});
+			if (res.ok) {
+				const updatedOrder = await res.json();
+				setUserOrders((prevOrders) =>
+					prevOrders.map((order) =>
+						order._id === updatedOrder._id
+							? { ...order, orderStatus: updatedOrder.orderStatus }
+							: order
+					)
+        );
+        toast.success("Order status updated successfully");
+				setActiveDropdown(null);
+				setLoading(false);
+			}
+		} catch (error) {
+			console.log(error.message);
+		}
+	};
+
+	const handleDeleteOrder = async () => {
+		setShowModal(false);
+		try {
+			const res = await fetch(`/api/order/deleteorder/${orderIdToDelete}`, {
+				method: "DELETE",
+			});
+			const data = await res.json();
+			if (!res.ok) {
+				console.log(data.message);
+			}
+			if (res.ok) {
+				setUserOrders((prev) =>
+					prev.filter((order) => order._id !== orderIdToDelete)
+        );
+        toast.success("Order deleted successfully");
+			}
+		} catch (error) {
+			console.log(error.message);
+		}
+	};
+
 	return (
-		<div className="w-full">
-			<h1 className="text-3xl font-semibold text-center my-6">Orders</h1>
+		<div className="table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
+			<h1 className="text-3xl font-semibold text-center my-6">All Orders</h1>
 
 			<div className="overflow-x-auto w-full">
 				{loading ? (
@@ -66,14 +125,15 @@ export default function DashOrders() {
 					</div>
 				) : currentUser && userOrders.length > 0 ? (
 					<>
-						<Table hoverable className="text-center">
+						<Table hoverable>
 							<Table.Head>
 								{/* <Table.HeadCell>Order Id</Table.HeadCell> */}
 								<Table.HeadCell>Product Name</Table.HeadCell>
 								<Table.HeadCell>Quantity</Table.HeadCell>
-								<Table.HeadCell>Color</Table.HeadCell>
+								<Table.HeadCell>Customer Name</Table.HeadCell>
+								<Table.HeadCell>Customer Email</Table.HeadCell>
 								<Table.HeadCell>Payment Stauts</Table.HeadCell>
-								<Table.HeadCell>Payment Stauts</Table.HeadCell>
+								<Table.HeadCell>Amount</Table.HeadCell>
 								<Table.HeadCell>Status</Table.HeadCell>
 								<Table.HeadCell>
 									<span>Actions</span>
@@ -98,13 +158,15 @@ export default function DashOrders() {
 											{/* You need to extract and render product details here */}
 											{order.products.map((product) => (
 												<div key={product._id}>
-													<p>{product.quantity}</p>
+													<p className="text-center">{product.quantity}</p>
 												</div>
 											))}
 										</Table.Cell>
-										<Table.Cell>{order.currency}</Table.Cell>
+
+										<TableCell>{order.name}</TableCell>
+										<TableCell>{order.user}</TableCell>
 										<Table.Cell>
-											<Badge color="success" className="inline">
+											<Badge color="success" className="inline capitalize">
 												{order.paymentStatus}
 											</Badge>
 										</Table.Cell>
@@ -113,16 +175,18 @@ export default function DashOrders() {
 												${formatAmount(order.amount)}
 											</span>
 										</Table.Cell>
-										<Table.Cell>
-                    {activeDropdown === order._id ? (
+										<Table.Cell className="whitespace-nowrap">
+											{activeDropdown === order._id ? (
 												<div className="max-w-md">
-													<div className="mb-2 block">
-														<Label
-															htmlFor="status"
-															value="Select status"
-														/>
-													</div>
-													<Select id="status" required>
+													<Select
+														id="orderStatus"
+														required
+														onChange={(e) =>
+															handleStatusChange(order._id, e.target.value)
+														}
+													>
+														<option>--Select--</option>
+														<option>Pending</option>
 														<option>Processing</option>
 														<option>Shipped</option>
 														<option>Delivered</option>
@@ -130,9 +194,22 @@ export default function DashOrders() {
 													</Select>
 												</div>
 											) : (
-												<span className="font-medium text-gray-900 dark:text-white">
-													{order.status || "Processing"}
-												</span>
+												<Badge className="justify-center" color={`${
+														order.orderStatus === "Processing"
+															? "warning"
+															: order.orderStatus === "Shipped"
+															? "indigo"
+															: order.orderStatus === "Delivered"
+															? "success"
+															: order.orderStatus === "Cancelled"
+															? "failure"
+															: order.orderStatus === "Pending"
+															? "dark"
+															: "dark"
+													}`}
+												>
+													{order.orderStatus || "Processing"}
+												</Badge>
 											)}
 										</Table.Cell>
 										<Table.Cell>
@@ -144,7 +221,14 @@ export default function DashOrders() {
 												>
 													<MdOutlineEdit />
 												</Button>
-												<Button size="xs" color="failure">
+												<Button
+													size="xs"
+													color="failure"
+													onClick={() => {
+														setShowModal(true);
+														setOrderIdToDelete(order._id);
+													}}
+												>
 													<MdDelete />
 												</Button>
 											</div>
@@ -158,6 +242,7 @@ export default function DashOrders() {
 					<p className="text-center">You have no orders yet!</p>
 				)}
 			</div>
+			<Modals show={showModal} onClose={() => setShowModal(false)} popup onDeleteConfirm = {handleDeleteOrder} />
 		</div>
 	);
 }

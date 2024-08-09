@@ -1,8 +1,8 @@
-import { Badge, Button, Modal, Spinner, Table } from "flowbite-react";
-import { useSelector } from "react-redux";
+import { Badge, Button, Spinner, Table } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import Modals from "./Modals";
 
 export default function DashProducts() {
 	const { currentUser } = useSelector((state) => state.user);
@@ -164,30 +164,12 @@ export default function DashProducts() {
 					<p>You have no orders yet!</p>
 				)}
 			</div>
-			<Modal
+			<Modals
 				show={showModal}
 				onClose={() => setShowModal(false)}
 				popup
-				size="md"
-			>
-				<Modal.Header />
-				<Modal.Body>
-					<div className="text-center">
-						<HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
-						<h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
-							Are you sure you want to delete this product?
-						</h3>
-						<div className="flex justify-center gap-4">
-							<Button color="failure" onClick={handleDeleteProduct}>
-								Yes, I am sure
-							</Button>
-							<Button color="gray" onClick={() => setShowModal(false)}>
-								No, cancel
-							</Button>
-						</div>
-					</div>
-				</Modal.Body>
-			</Modal>
+				onDeleteConfirm={handleDeleteProduct}
+			/>
 		</div>
 	);
 }

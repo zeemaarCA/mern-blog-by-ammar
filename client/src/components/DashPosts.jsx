@@ -1,8 +1,9 @@
-import { Button, Modal, Spinner, Table } from "flowbite-react";
+import { Button, Spinner, Table } from "flowbite-react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { toast } from "react-hot-toast";
 import { useEffect, useState } from "react";
-import { HiOutlineExclamationCircle } from "react-icons/hi";
+import Modals from "./Modals";
 
 export default function DashPosts() {
 	const { currentUser } = useSelector((state) => state.user);
@@ -75,6 +76,7 @@ export default function DashPosts() {
 				setUserPosts((prev) =>
 					prev.filter((post) => post._id !== postIdToDelete)
 				);
+				toast.success("Post deleted successfully");
 			}
 		} catch (error) {
 			console.log(error.message);
@@ -150,8 +152,8 @@ export default function DashPosts() {
 						<Button
 							onClick={handleShowMore}
 							className="bg-slate-200 my-7 mx-auto"
-								color="gray"
-								{...(buttonLoading ? { isProcessing: true } : {})}
+							color="gray"
+							{...(buttonLoading ? { isProcessing: true } : {})}
 						>
 							Show more
 						</Button>
@@ -160,30 +162,12 @@ export default function DashPosts() {
 			) : (
 				<p>You have no posts yet!</p>
 			)}
-			<Modal
+			<Modals
 				show={showModal}
 				onClose={() => setShowModal(false)}
 				popup
-				size="md"
-			>
-				<Modal.Header />
-				<Modal.Body>
-					<div className="text-center">
-						<HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
-						<h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
-							Are you sure you want to delete this post?
-						</h3>
-						<div className="flex justify-center gap-4">
-							<Button color="failure" onClick={handleDeletePost}>
-								Yes, I am sure
-							</Button>
-							<Button color="gray" onClick={() => setShowModal(false)}>
-								No, cancel
-							</Button>
-						</div>
-					</div>
-				</Modal.Body>
-			</Modal>
+				onDeleteConfirm={handleDeletePost}
+			/>
 		</div>
 	);
 }

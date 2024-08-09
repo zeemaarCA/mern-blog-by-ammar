@@ -167,3 +167,27 @@ export const getPaymentDetails = async (req, res, next) => {
     res.status(500).json({ error: 'An error occurred while retrieving the payment details' });
   }
 };
+
+
+export const allpayments = async (req, res, next) => {
+
+  if (!req.user.isAdmin) {
+    return next(errorHandler(403, 'You are not allowed to see payments'))
+  }
+
+  try {
+    // Fetch all orders without filtering by userId
+    const allpayments = await Payment.find();
+
+    // If no orders are found, return a 404 error
+    if (allpayments.length === 0) {
+      return res.status(404).json({ error: 'No payments found' });
+    }
+
+    // Return the orders
+    res.json(allpayments);
+  } catch (error) {
+    // Handle unexpected errors
+    next(error);
+  }
+};

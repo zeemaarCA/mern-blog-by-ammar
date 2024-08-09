@@ -152,52 +152,46 @@ async function handleCheckoutSessionCompleted(session) {
 
 async function handleChargeFailed(chargeFailed) {
   try {
+    // Log the chargeFailed event data for debugging
+    logger.info('Charge failed event data:', JSON.stringify(chargeFailed, null, 2));
+
+    // Check if userId is available in the metadata
+    if (!chargeFailed.metadata || !chargeFailed.metadata.userId) {
+      throw new Error('User ID not found in metadata');
+    }
+
     const userId = chargeFailed.metadata.userId;
+
+    // Fetch the cart associated with the userId
     const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
 
+    // If no cart or cart items are found, throw an error
     if (!cart || !cart.items || cart.items.length === 0) {
       throw new Error('User or cart information not found');
     }
 
-    // Create Payment Record
+    // Create a Payment record with available information
     const payment = new Payment({
       userId: userId,
-      name: chargeFailed.customer_details.name,
-      user: chargeFailed.customer_details.email,
+      name: chargeFailed.billing_details.name || 'N/A',
+      user: chargeFailed.billing_details.email || 'N/A',
       sessionId: chargeFailed.id,
       amount: chargeFailed.amount_total,
       currency: chargeFailed.currency,
-      paymentMethod: chargeFailed.payment_method_types[0], // Simplified assumption
-      // receipt_url: session.receipt_url || '',
-      status: chargeFailed.payment_status,
+      paymentMethod: chargeFailed.payment_method_details.type, // Updated for more accurate field name
+      status: chargeFailed.status,
       createdAt: new Date(chargeFailed.created * 1000),
     });
 
     await payment.save();
 
-    // Create Order Record
-    const order = new Order({
-      orderId: chargeFailed.id,
-      userId: userId,
-      name: chargeFailed.customer_details.name,
-      user: chargeFailed.customer_details.email,
-      products: cart.items.map(p => ({ productId: p.id, title: p.title, quantity: p.quantity })),
-      amount: chargeFailed.amount_total,
-      currency: chargeFailed.currency,
-      paymentStatus: chargeFailed.payment_status,
-      orderStatus: 'Failed',
-      createdAt: new Date(chargeFailed.created * 1000),
-    });
-
-    await order.save();
-    logger.info('Payment and order failed');
-
-
+    logger.info('Payment record saved for failed charge');
   } catch (error) {
-    logger.error('Error saving payment or order:', error);
+    logger.error('Error saving payment or order:', error.message);
     throw new Error(`Error saving payment or order: ${error.message}`);
   }
 }
+
 
 // async function handleChargeFailed(charge) {
 //   try {

@@ -194,7 +194,7 @@ export default function DashOrders() {
 													</Select>
 												</div>
 											) : (
-												<Badge className="justify-center" color={`${
+												<Badge className="justify-center inline" color={`${
 														order.orderStatus === "Processing"
 															? "warning"
 															: order.orderStatus === "Shipped"

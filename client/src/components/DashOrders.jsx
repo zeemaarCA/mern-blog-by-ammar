@@ -44,7 +44,7 @@ export default function DashOrders() {
 	};
 
 	return (
-		<div className="w-full">
+		<div className="table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
 			<h1 className="text-3xl font-semibold text-center my-6">Orders</h1>
 
 			<div className="overflow-x-auto w-full">
@@ -99,7 +99,7 @@ export default function DashOrders() {
 											</span>
 										</Table.Cell>
 										<Table.Cell>
-											<Badge
+											<Badge className="justify-center inline"
 												color={`${
 													order.orderStatus === "Processing"
 														? "warning"

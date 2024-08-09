@@ -8,7 +8,7 @@ import {
 	HiAnnotation,
 	HiChartPie,
 } from "react-icons/hi";
-import { TfiPackage } from "react-icons/tfi";
+import { GiCardboardBoxClosed } from "react-icons/gi";
 import { IoBagAdd } from "react-icons/io5";
 import { AiOutlineProduct } from "react-icons/ai";
 import { Link, useLocation } from "react-router-dom";
@@ -100,7 +100,7 @@ export default function DashSidebar() {
 						<Link to="/dashboard?tab=products">
 							<Sidebar.Item
 								active={tab === "products"}
-								icon={TfiPackage}
+								icon={GiCardboardBoxClosed}
 								as="div"
 							>
 								Products

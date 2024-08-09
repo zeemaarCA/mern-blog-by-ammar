@@ -150,57 +150,14 @@ async function handleCheckoutSessionCompleted(session) {
   }
 }
 
-async function handleChargeFailed(chargeFailed) {
+async function handleChargeFailed(charge) {
   try {
-    // Log the chargeFailed event data for debugging
-    logger.info('Charge failed event data:', JSON.stringify(chargeFailed, null, 2));
-
-    // Check if userId is available in the metadata
-    if (!chargeFailed.metadata || !chargeFailed.metadata.userId) {
-      throw new Error('User ID not found in metadata');
-    }
-
-    const userId = chargeFailed.metadata.userId;
-
-    // Fetch the cart associated with the userId
-    const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
-
-    // If no cart or cart items are found, throw an error
-    if (!cart || !cart.items || cart.items.length === 0) {
-      throw new Error('User or cart information not found');
-    }
-
-    // Create a Payment record with available information
-    const payment = new Payment({
-      userId: userId,
-      name: chargeFailed.billing_details.name || 'N/A',
-      user: chargeFailed.billing_details.email || 'N/A',
-      sessionId: chargeFailed.id,
-      amount: chargeFailed.amount_total,
-      currency: chargeFailed.currency,
-      paymentMethod: chargeFailed.payment_method_details.type, // Updated for more accurate field name
-      status: chargeFailed.status,
-      createdAt: new Date(chargeFailed.created * 1000),
-    });
-
-    await payment.save();
-
-    logger.info('Payment record saved for failed charge');
+    logger.warn(`Charge failed for user ${charge.metadata.userId}`);
   } catch (error) {
-    logger.error('Error saving payment or order:', error.message);
-    throw new Error(`Error saving payment or order: ${error.message}`);
+    logger.error('Error handling charge failure:', error);
+    throw new Error(`Error handling charge failure: ${error.message}`);
   }
 }
-
-
-// async function handleChargeFailed(charge) {
-//   try {
-//     logger.warn(`Charge failed for user ${charge.metadata.userId}`);
-//   } catch (error) {
-//     logger.error('Error handling charge failure:', error);
-//     throw new Error(`Error handling charge failure: ${error.message}`);
-//   }
-// }
 
 
 export const getPaymentDetails = async (req, res, next) => {

@@ -81,7 +81,7 @@ const Checkout = () => {
 		try {
 			dispatch(updateStart());
 			setLoading(true);
-			const res = await fetch(`/api/user/updateCustomer/${userId}`, {
+			const res = await fetch(`/api/user/update/${userId}`, {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",

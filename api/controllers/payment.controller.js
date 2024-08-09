@@ -7,8 +7,8 @@ import dotenv from 'dotenv';
 import logger from '../utils/logger.js';
 import Cart from '../models/cart.model.js';
 dotenv.config();
-const stripe = new Stripe('sk_test_N9GrXRSMB1nazlDElS0f6QLC');
-const endpointSecret = 'whsec_e1kCDRL8xyrpFAEjF6Lc6V8gR2JgWktQ';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET;
 
 mongoose.connect(process.env.MONGO).then(() => {
 }).catch((err) => {

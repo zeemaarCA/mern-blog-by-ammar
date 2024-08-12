@@ -163,7 +163,7 @@ export default function DashOrders() {
 											))}
 										</Table.Cell>
 
-										<TableCell>{order.name}</TableCell>
+										<TableCell className="whitespace-nowrap">{order.name}</TableCell>
 										<TableCell>{order.user}</TableCell>
 										<Table.Cell>
 											<Badge color="success" className="inline capitalize">

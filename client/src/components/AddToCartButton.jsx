@@ -21,6 +21,7 @@ export default function AddToCartButton({ product, isLoading, isAdded }) {
     const newProduct = {
       userId: currentUser._id,
       id: product._id,
+      // id: product.id,
       title: product.title,
       price: product.price,
       image: product.image,

@@ -70,11 +70,13 @@ const Checkout = () => {
 	}, [userId, navigate]);
 
 	const calculateTotalPrice = () => {
-		return cartItems.reduce(
-			(total, item) => total + item.price * (item.quantity || 1),
-			0
-		);
-	};
+    const totalPrice = cartItems.reduce(
+        (total, item) => total + item.price * (item.quantity || 1),
+        0
+    );
+
+    return totalPrice.toFixed(2); // Return the total price rounded to 2 decimal places
+};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
